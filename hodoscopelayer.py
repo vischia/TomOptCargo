@@ -1,6 +1,7 @@
 from tomopt.volume.layer import AbsDetectorLayer
 from tomopt.volume.panel import DetectorPanel
 from typing import List, Union, Optional, Iterator, Tuple
+import torch
 from torch import Tensor
 import numpy as np
 from tomopt.muon import MuonBatch
