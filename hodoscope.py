@@ -88,8 +88,7 @@ class Hodoscope(nn.Module):
                          xy[1] + self.xyz_gap[1],
                          z - self.xyz_gap[2]),
                 xyz_high=(xy[0] + self.xyz_span[0] - self.xyz_gap[0],
-                          xy[1] + self.xyz_span[1] - self.xyz_gap[1b
-                                                                  ],
+                          xy[1] + self.xyz_span[1] - self.xyz_gap[1],
                           z + self.xyz_span[2] - self.xyz_gap[2]),
             )
 
