@@ -19,7 +19,7 @@ class Hodoscope(nn.Module):
                  m2_cost: float = 1.,
                  budget: Optional[Tensor] = None,
                  realistic_validation: bool = True,
-                 panel_type: str = 'SigmoidDetectorPanel',
+                 panel_type: str = 'DetectorPanel',
                  smooth: Union[float, Tensor] = None,
                  device: torch.device = DEVICE):
         
@@ -42,7 +42,7 @@ class Hodoscope(nn.Module):
     def __getitem__(self, idx: int) -> DetectorPanel:
         return self.panels[idx]
 
-    def generate_init_panels(self) -> Union[List[DetectorPanel],List[SigmoidDetectorPanel]]:
+    def generate_init_panels(self) -> Union[List[DetectorPanel], List[SigmoidDetectorPanel]]:
 
         r"""
         Generates Detector panels based on the xy and z position (xy, z), the span of the hodoscope (xyz_span), 
@@ -62,7 +62,7 @@ class Hodoscope(nn.Module):
                             init_xy_span = [self.xyz_span[0] - 2 * self.xyz_gap[0], self.xyz_span[1] - 2 * self.xyz_gap[1]],
                             device=DEVICE) for i in range(self.n_panels)])
         
-        if self.panel_type == 'SigmoidDetectorPanel':
+        elif self.panel_type == 'SigmoidDetectorPanel':
             return nn.ModuleList(
                 [SigmoidDetectorPanel(smooth = self.smooth,
                             res = self.res, 
