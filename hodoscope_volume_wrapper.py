@@ -30,7 +30,7 @@ from tomopt.optimisation.data import PassiveYielder
 from tomopt.optimisation.wrapper import FitParams, AbsVolumeWrapper
 from hodoscopelayer import HodoscopeDetectorLayer
 
-class PanelVolumeWrapper(AbsVolumeWrapper):
+class HodoscopeVolumeWrapper(AbsVolumeWrapper):
     r"""
     Volume wrapper for volumes with :class:`~tomopt.volume.panel.DetectorPanel`-based detectors.
 
@@ -165,7 +165,7 @@ class PanelVolumeWrapper(AbsVolumeWrapper):
         *,
         xy_pos_opt: PartialOpt,
         z_pos_opt: PartialOpt,
-        xy_span_opt: PartialOpt,
+        xyz_span_opt: PartialOpt,
         budget_opt: Optional[PartialOpt] = None,
         loss_func: Optional[AbsDetectorLoss] = None,
         partial_scatter_inferrer: Type[ScatterBatch] = ScatterBatch,
@@ -177,7 +177,7 @@ class PanelVolumeWrapper(AbsVolumeWrapper):
             partial_opts={
                 "xy_pos_opt": xy_pos_opt,
                 "z_pos_opt": z_pos_opt,
-                "xy_span_opt": xy_span_opt,
+                "xy_span_opt": xyz_span_opt,
                 "budget_opt": budget_opt,
             },
             loss_func=loss_func,
@@ -240,7 +240,6 @@ class PanelVolumeWrapper(AbsVolumeWrapper):
         """
 
         all_dets = self.volume.get_detectors()
-        # dets: List[PanelDetectorLayer] = []
         dets: List[HodoscopeDetectorLayer] = []
 
         for d in all_dets:
@@ -249,14 +248,9 @@ class PanelVolumeWrapper(AbsVolumeWrapper):
 
                 dets.append(d)
         self.opts = {
-            # "xy_pos_opt": kwargs["xy_pos_opt"]((p.xy for l in dets for p in l.panels)),
-            # "z_pos_opt": kwargs["z_pos_opt"]((p.z for l in dets for p in l.panels)),
-            # "xy_span_opt": kwargs["xy_span_opt"]((p.xy_span for l in dets for p in l.panels)),
             "xy_pos_opt": kwargs["xy_pos_opt"]((h.xy for l in dets for h in l.hodoscopes)),
             "z_pos_opt": kwargs["z_pos_opt"]((h.z for l in dets for h in l.hodoscopes)),
-
+            "xyz_span_opt": kwargs["z_pos_opt"]((h.xyz_span for l in dets for h in l.hodoscopes)),
         }
         if kwargs["budget_opt"] is not None:
             self.opts["budget_opt"] = kwargs["budget_opt"]((p for p in [self.volume.budget_weights]))
-        if kwargs["xy_span_opt"] is not None:
-            self.opts["xy_span_opt"] = kwargs["xy_span_opt"]((h.xyz_span for l in dets for h in l.hodoscopes))
