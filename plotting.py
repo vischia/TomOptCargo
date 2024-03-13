@@ -86,7 +86,8 @@ def plot_hits(volume: Volume,
                 # plot legend only once
                 legend = hits if (i == 0) & (l.pos == 'above') else None
                 # plot reco efficiency if reco_hits
-                alpha =  muons._hits[l.pos]['eff'][i][event].detach().item() if hits == 'reco_xyz' else .9
+                # alpha =  muons._hits[l.pos]['eff'][i][event].detach().item() if hits == 'reco_xyz' else .9
+                alpha =  .9
                 # plot hits
                 ax.scatter(xyz[dim], xyz[2], color = "blue", label = legend, alpha = alpha)
                 # plot legend only once
