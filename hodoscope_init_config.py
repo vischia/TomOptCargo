@@ -10,7 +10,7 @@ from tomopt.core import DEVICE
 
 def get_standard_hod_config() -> Volume:
 
-    init_xyz_span, xyz_gap = [1., 1., .3], [.1, .1, .1]
+    init_xyz_span, xyz_gap = [1.5, 1.5, .3], [.1, .1, .1]
     init_eff, init_res = 0.90, 1e3
 
     hods = [Hodoscope(init_xyz= [.5, .5, z], 
