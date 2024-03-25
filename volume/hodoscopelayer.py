@@ -5,7 +5,7 @@ import torch
 from torch import Tensor
 import numpy as np
 from tomopt.muon import MuonBatch
-from hodoscope import Hodoscope
+from volume.hodoscope import Hodoscope
 from torch import nn
 
 
