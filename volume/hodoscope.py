@@ -78,11 +78,11 @@ class Hodoscope(nn.Module):
 
     def get_xyz_min(self) -> Tuple[float, float, float]:
 
-        return [self.xy[0]-self.xyz_span[0], self.xy[1]-self.xyz_span[1], self.z-self.xyz_span[2]]
+        return [self.xy[0].item()-self.xyz_span[0].item(), self.xy[1].item()-self.xyz_span[1].item(), self.z.item()-self.xyz_span[2].item()]
 
     def get_xyz_max(self) -> Tuple[float, float, float]:
 
-        return [self.xy[0]+self.xyz_span[0], self.xy[1]+self.xyz_span[1], self.z+self.xyz_span[2]]
+        return [self.xy[0].item()+self.xyz_span[0].item(), self.xy[1].item()+self.xyz_span[1].item(), self.z.item()+self.xyz_span[2].item()]
 
     def get_cost(self) -> Tensor:
 
