@@ -3,7 +3,8 @@ import numpy as np
 import torch
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Rectangle
-from typing import Tuple
+from typing import Tuple, Optional
+from torch import Tensor
 
 # TomOptCargo
 from volume.hodoscopelayer import HodoscopeDetectorLayer
@@ -121,7 +122,7 @@ def plot_hits(volume: Volume,
     ax.legend()
     plt.show()
 
-def draw_volume_2D(volume) -> None:
+def draw_volume_2D(volume: Volume, hits: Optional[Tensor] = None, pocas: Optional[Tensor] = None, event: Optional[int] = None) -> None:
 
     fig, axs = plt.subplots(ncols=3, figsize = (10, 10))
 
@@ -166,20 +167,20 @@ def draw_volume_2D(volume) -> None:
                             "dz": h.xyz_span[2].detach().item()})
                 for p in h.panels:
                     panels.append({"x": p.xy[0].detach().item(), 
-                                    "y": p.xy[0].detach().item(), 
+                                    "y": p.xy[1].detach().item(), 
                                     "z": p.z.detach().item(), 
                                     "dx": p.xy_span[0].detach().item(),
                                     "dy": p.xy_span[1].detach().item()})
 
     # XZ view
     XZ_hods = [Rectangle((hod["x"], hod["z"]), 
-                         hod["dx"], 
-                         hod["dz"]) for hod in hods]
+                            hod["dx"], 
+                            hod["dz"]) for hod in hods]
     # plot hodoscope
     axs[0].add_collection(PatchCollection(XZ_hods, 
-                                          facecolor="green", 
-                                          alpha = .2, 
-                                          edgecolor="green"))
+                                            facecolor="green", 
+                                            alpha = .2, 
+                                            edgecolor="green"))
     # plot passive
     axs[0].add_collection(PatchCollection([Rectangle((0., 0.), 
                                                     volume.get_passives()[0].lw[0], 
@@ -189,7 +190,7 @@ def draw_volume_2D(volume) -> None:
                                                     edgecolor="blue"))
     def normalize(x, xmin, xmax):
         return (x - xmin)/(xmax - xmin)
-
+    
     # plot panels
     for p in panels:
         axs[0].axhline(
@@ -209,13 +210,13 @@ def draw_volume_2D(volume) -> None:
 
     # YZ view
     YZ_hods = [Rectangle((hod["y"], hod["z"]), 
-                         hod["dy"], 
-                         hod["dz"]) for hod in hods]
+                            hod["dy"], 
+                            hod["dz"]) for hod in hods]
     # plot hodoscope
     axs[1].add_collection(PatchCollection(YZ_hods, 
-                                          facecolor="green", 
-                                          alpha = .2, 
-                                          edgecolor="green"))
+                                            facecolor="green", 
+                                            alpha = .2, 
+                                            edgecolor="green"))
     # plot passives
     axs[1].add_collection(PatchCollection([Rectangle((0., 0.), 
                                                     volume.get_passives()[0].lw[1], 
@@ -230,11 +231,11 @@ def draw_volume_2D(volume) -> None:
             y = p["z"], 
             color = "red", 
             xmin = normalize(p["y"] - p["dy"] / 2, 
-                            axs[0].get_xlim()[0], 
-                            axs[0].get_xlim()[1]), 
+                            axs[1].get_xlim()[0], 
+                            axs[1].get_xlim()[1]), 
             xmax = normalize(p["y"] + p["dy"] / 2, 
-                            axs[0].get_xlim()[0], 
-                            axs[0].get_xlim()[1])
+                            axs[1].get_xlim()[0], 
+                            axs[1].get_xlim()[1])
         )
 
     axs[1].set_xlabel("y [m]")
@@ -274,6 +275,48 @@ def draw_volume_2D(volume) -> None:
     axs[2].set_xlabel("x [m]")
     axs[2].set_ylabel("y [m]")
     axs[2].set_title("XY view")
+
+    if hits is not None:
+        axs[0].scatter(hits[event, :, 0].detach().numpy(), hits[event, :, 2].detach().numpy(), marker = "+")
+        axs[1].scatter(hits[event, :, 1].detach().numpy(), hits[event, :, 2].detach().numpy(), marker = "+")
+        axs[2].scatter(hits[event, :, 0].detach().numpy(), hits[event, :, 1].detach().numpy(), marker = "+")
+
+    if pocas is not None:
+        axs[0].scatter(pocas[event, 0].detach().numpy(), pocas[event, 2].detach().numpy(), marker = "+")
+        axs[1].scatter(pocas[event, 1].detach().numpy(), pocas[event, 2].detach().numpy(), marker = "+")
+        axs[2].scatter(pocas[event, 0].detach().numpy(), pocas[event, 1].detach().numpy(), marker = "+")
+
+    plt.tight_layout()
+    plt.show()
+
+def plot_poca_points(pocas: Tensor, binning_xyz: Tuple[float]) -> None:
+    r"""
+    Plot the poca locations a 2d histograms in the XZ, YZ and XY projection.
+
+    Arguments:
+        pocas: The poca points locations (n_muons, 3).
+        binning_xyz: The number of bins along x, y, and z (Nx, Ny, Nz).
+    """
+    fig, axs = plt.subplots(ncols = 3)
+
+    xy_labels = [("x", "z"), ("y", "z"), ("x", "y")]
+    unit = " [m]"
+
+    #XZ view
+    axs[0].hist2d(pocas[:, 0], pocas[:, 2], bins = (binning_xyz[0], binning_xyz[2]))
+    axs[0].set_aspect("equal")
+
+    #YZ view
+    axs[1].hist2d(pocas[:, 1], pocas[:, 2], bins = (binning_xyz[1], binning_xyz[2]))
+    axs[1].set_aspect("equal")
+
+    #XY view
+    axs[2].hist2d(pocas[:, 0], pocas[:, 1], bins = (binning_xyz[0], binning_xyz[1]))
+    axs[2].set_aspect("equal")
+
+    for ax, xy_label in zip(axs, xy_labels):
+        ax.set_xlabel(xy_label[0] + unit)
+        ax.set_xlabel(xy_label[1] + unit)
 
     plt.tight_layout()
     plt.show()
