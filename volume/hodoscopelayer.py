@@ -88,6 +88,20 @@ class HodoscopeDetectorLayer(AbsDetectorLayer):
             mu.append_hits(hits, self.pos)
         mu.propagate_dz(mu.z - (self.z - self.size))  # Move to bottom of layer
 
+    def conform_detector(self) -> None:
+        r"""
+        Loops through hodoscopes and calls their `clamp_params` method, to ensure that hodoscopes are located within the bounds of the detector layer.
+        It will be called via the :class:`~tomopt.optimisation.wrapper.AbsVolumeWrapper` after any update to the hodoscope layers.
+        """
+
+        lw = self.lw.detach().cpu().numpy()
+        z = self.z.detach().cpu()[0]
+        for p in self.hodoscopes:
+            p.clamp_params(
+                xyz_low=(0, 0, z - self.size),
+                xyz_high=(lw[0], lw[1], z),
+            )
+
     def get_cost(self) -> Tensor:
         r"""
         Returns the total, current cost of the detector(s) in the layer, as computed by looping over the hodoscopes and summing the returned values of calls to
