@@ -56,6 +56,7 @@ class Hodoscope(nn.Module):
             return nn.ModuleList(
                 [DetectorPanel(res = self.res, 
                             eff = self.eff,
+                            realistic_validation = self.realistic_validation,
                             init_xyz = [self.xy[0],
                                         self.xy[1],
                                         self.z - self.xyz_gap[2] - (self.xyz_span[2]-2*self.xyz_gap[2])*i/(self.n_panels-1)], 
@@ -67,6 +68,7 @@ class Hodoscope(nn.Module):
                 [SigmoidDetectorPanel(smooth = self.smooth,
                             res = self.res, 
                             eff = self.eff,
+                            realistic_validation = self.realistic_validation,
                             init_xyz = [self.xy[0],
                                         self.xy[1],
                                         self.z - self.xyz_gap[2] - (self.xyz_span[2]-2*self.xyz_gap[2])*i/(self.n_panels-1)], 
