@@ -24,7 +24,8 @@ from volume.hodoscopelayer import HodoscopeDetectorLayer
 
 class HodoscopeMetricLogger(MetricLogger):
     r"""
-    Logger for use with :class:`~tomopt.volume.layer.HodoscopeDetectorLayer` s
+    Logger for use with :class:`~tomopt.volume.layer.HodoscopeDetectorLayer` s 
+                     or :class:`~tomopt.volume.layer.PanelDetectorLayer` s 
 
     Arguments:
         gif_filename: optional savename for recording a gif of the optimisation process (None -> no gif)
