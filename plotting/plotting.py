@@ -182,7 +182,7 @@ def draw_volume_2D(volume: Volume, hits: Optional[Tensor] = None, pocas: Optiona
                                             alpha = .2, 
                                             edgecolor="green"))
     # plot passive
-    axs[0].add_collection(PatchCollection([Rectangle((0., 0.), 
+    axs[0].add_collection(PatchCollection([Rectangle((0., volume.get_passives()[-1].z - volume.get_passives()[-1].size), 
                                                     volume.get_passives()[0].lw[0], 
                                                     len(volume.get_passives()) * volume.get_passives()[0].size)], 
                                                     facecolor="blue", 
@@ -218,7 +218,7 @@ def draw_volume_2D(volume: Volume, hits: Optional[Tensor] = None, pocas: Optiona
                                             alpha = .2, 
                                             edgecolor="green"))
     # plot passives
-    axs[1].add_collection(PatchCollection([Rectangle((0., 0.), 
+    axs[1].add_collection(PatchCollection([Rectangle((0., volume.get_passives()[-1].z - volume.get_passives()[-1].size), 
                                                     volume.get_passives()[0].lw[1], 
                                                     len(volume.get_passives()) * volume.get_passives()[0].size)], 
                                                     facecolor="blue", 
