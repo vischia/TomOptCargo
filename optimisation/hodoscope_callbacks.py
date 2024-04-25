@@ -177,10 +177,8 @@ class NoMoreNaNs(Callback):
         for l in self.wrapper.volume.get_detectors():
             if isinstance(l, HodoscopeDetectorLayer):
                 for h in l.hodoscopes:
-                        print(h.z)
-                        
                         torch.nan_to_num_(h.xy.grad, 0)
-                        #torch.nan_to_num_(h.z.grad, 0)
-                        torch.nan_to_num_(h.xyz_span.grad, 0)
+                        torch.nan_to_num_(h.z.grad, 0)
+                        #torch.nan_to_num_(h.xyz_span.grad, 0)
             else:
                 raise NotImplementedError(f"NoMoreNaNs does not yet support {type(l)}")
