@@ -1,5 +1,6 @@
 from typing import Tuple, List, Optional, Union
 from tomopt.core import DEVICE
+import numpy as np
 import torch
 from torch import Tensor, nn
 
@@ -19,7 +20,7 @@ class Hodoscope(nn.Module):
                  eff: float = 0.9,
                  m2_cost: float = 1.,
                  budget: Optional[Tensor] = None,
-                 realistic_validation: bool = True,
+                 realistic_validation: bool = False,
                  panel_type: str = 'HodoscopeDetectorPanel',
                  smooth: Union[float, Tensor] = None,
                  device: torch.device = DEVICE):
@@ -33,7 +34,7 @@ class Hodoscope(nn.Module):
         self.realistic_validation, self.device = realistic_validation, device
         self.xy = nn.Parameter(torch.tensor(init_xyz[:2], device=self.device))
         self.z = nn.Parameter(torch.tensor(init_xyz[2:3], device=self.device))
-        self.xyz_span = nn.Parameter(torch.tensor(init_xyz_span, device=self.device))
+        self.xyz_span = torch.Tensor(init_xyz_span, device=self.device)
         self.register_buffer("m2_cost", torch.tensor(float(m2_cost), device=self.device))
         self.register_buffer("resolution", torch.tensor(float(res), device=self.device))
         self.register_buffer("efficiency", torch.tensor(float(eff), device=self.device))
@@ -66,6 +67,25 @@ class Hodoscope(nn.Module):
                             hod = self) for i in range(self.n_panels)]
         else:
             raise ValueError(f"Detector type {self.panel_type} currently not supported.")
+        
+    def clamp_params(self, xyz_low: Tuple[float, float, float], xyz_high: Tuple[float, float, float]) -> None:
+        r"""
+        Ensures that the panel is centred within the supplied xyz range,
+        and that the span of the panel is between xyz_high/20 and xyz_high*10.
+        A small random number < 1e-3 is added/subtracted to the min/max z position of the panel, to ensure it doesn't overlap with other panels.
+
+        Arguments:
+            xyz_low: minimum x,y,z values for the panel centre in metres
+            xyz_high: maximum x,y,z values for the panel centre in metres
+        """
+
+        with torch.no_grad():
+            eps = np.random.uniform(0, 1e-3)  # prevent hits at same z due to clamping
+            self.xy[0].clamp_(min=xyz_low[0], max=xyz_high[0])
+            self.xy[1].clamp_(min=xyz_low[1], max=xyz_high[1])
+            self.z.clamp_(min=xyz_low[2] + eps, max=xyz_high[2] - eps)
+            self.xyz_span[0].clamp_(min=xyz_high[0] / 20, max=10 * xyz_high[0])
+            self.xyz_span[1].clamp_(min=xyz_high[1] / 20, max=10 * xyz_high[1])
 
     def get_xyz_min(self) -> Tuple[float, float, float]:
 
