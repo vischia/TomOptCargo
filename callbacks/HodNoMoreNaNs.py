@@ -9,7 +9,7 @@ r"""
 Provides callbacks for affecting optimisation gradients
 """
 
-# __all__ = ["NoMoreNaNs"]
+__all__ = ["NoMoreNaNs"]
 
 
 class HodNoMoreNaNs(Callback):
