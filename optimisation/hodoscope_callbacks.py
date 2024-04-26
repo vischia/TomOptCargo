@@ -58,7 +58,7 @@ class HodoscopeMetricLogger(MetricLogger):
         super().update_plot()
         with sns.axes_style(**self.style), sns.color_palette(self.cat_palette) as palette:
             for axes, det in zip([self.above_det, self.below_det], self.wrapper.get_detectors()):
-                l, s = [], []
+                l, s ,pl, ps = [], [], [], []
                 if not isinstance(det, HodoscopeDetectorLayer):
                     raise ValueError(f"Detector {det} is not a PanelDetectorLayer")
                 for p in det.hodoscopes:
@@ -70,7 +70,10 @@ class HodoscopeMetricLogger(MetricLogger):
                     else:
                         l.append(np.concatenate((p.xy.detach().cpu().numpy(), p.z.detach().cpu().numpy())))
                         s.append(p.xyz_span.detach().cpu().numpy())
-                loc, span = np.array(l), np.array(s)
+                        for panel in p.panels:
+                            pl.append(np.concatenate((panel.xy.detach().cpu().numpy(), panel.z.detach().cpu().numpy())))
+                            ps.append(panel.xy_span.detach().cpu().numpy())
+                loc, span ,p_loc, p_span= np.array(l), np.array(s), np.array(pl), np.array(ps)
 
                 for ax in axes:
                     ax.clear()
@@ -79,11 +82,34 @@ class HodoscopeMetricLogger(MetricLogger):
                 axes[2].add_patch(patches.Rectangle((0, 0), lw[0], lw[1], linewidth=1, edgecolor="black", facecolor="none", hatch="x"))  # volume
 
                 for p in range(len(loc)):
-                    axes[0].add_line(
-                        mlines.Line2D((loc[p, 0] - (span[p, 0] / 2), loc[p, 0] + (span[p, 0] / 2)), (loc[p, 2], loc[p, 2]), linewidth=2, color=palette[p])
-                    )  # xz
-                    axes[1].add_line(
-                        mlines.Line2D((loc[p, 1] - (span[p, 1] / 2), loc[p, 1] + (span[p, 1] / 2)), (loc[p, 2], loc[p, 2]), linewidth=2, color=palette[p])
+                    for panel in range(len(p_loc)):
+                        axes[0].add_line(
+                            mlines.Line2D((p_loc[panel, 0] - (p_span[panel, 0] / 2), p_loc[panel, 0] + (p_span[panel, 0] / 2)), (p_loc[panel, 2], p_loc[panel, 2]), linewidth=2, color=palette[panel])
+                     ) 
+                    axes[0].add_patch(
+                        patches.Rectangle(
+                            (loc[p, 0] - (span[p, 0] / 2), loc[p, 2]),
+                            span[p, 0],
+                            -span[p, 2],
+                            linewidth=1,
+                            edgecolor=palette[p],
+                            facecolor="none",
+                        )
+                    ) # xz
+                    for panel in range(len(p_loc)):
+                        axes[1].add_line(
+                            mlines.Line2D((p_loc[panel, 1] - (p_span[panel, 1] / 2), p_loc[panel, 1] + (p_span[panel, 1] / 2)), (p_loc[panel, 2], p_loc[panel, 2]), linewidth=2, color=palette[panel])
+                     )  
+                    
+                    axes[1].add_patch(
+                        patches.Rectangle(
+                            (loc[p, 1] - (span[p, 0] / 2), loc[p, 2]),
+                            span[p, 1],
+                            -span[p, 2],
+                            linewidth=1,
+                            edgecolor=palette[p],
+                            facecolor="none",
+                        )
                     )  # yz
                     axes[2].add_patch(
                         patches.Rectangle(
