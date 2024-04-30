@@ -1,18 +1,42 @@
-from tomopt.volume.layer import AbsDetectorLayer
-from tomopt.volume.panel import DetectorPanel
+
 from typing import List, Union, Optional, Iterator, Tuple
 import torch
-from torch import Tensor
+from torch import Tensor, nn
 import numpy as np
-from tomopt.muon import MuonBatch
-from volume.hodoscope import Hodoscope
-from torch import nn
 
+from volume.hodoscope import Hodoscope
 
 from tomopt.core import DEVICE
+from tomopt.volume.layer import AbsDetectorLayer
+from tomopt.volume.panel import DetectorPanel
+from tomopt.muon import MuonBatch
 
+r"""
+Provides implementations of active detection layers containing hodoscope-like detectors.
+"""
 
 class HodoscopeDetectorLayer(AbsDetectorLayer):
+    r"""
+    A detector layer class that one or more "hodoscope" to record muon positions (hits).
+
+    Multiple detection layers can be grouped together, via their `pos` attribute (position); a string-encoded value.
+    By default, the inference methods expect detectors above the passive layer to have `pos=='above'`,
+    and those below the passive volume to have `pos=='below'`.
+    When retrieving hits from the muon batch, hits will be stacked together with other hits from the same `pos`.
+
+    The length and width (`lw`) is the spans of the layer in metres in x and y, and the layer begins at x=0, y=0.
+    z indicates the position of the top of the layer, in meters, and size is the distance from the top of the layer to the bottom.
+
+    .. important::
+        The detector panels do not scatter muons.
+
+    Arguments:
+        pos: string-encoding of the detector-layer group
+        lw: the length and width of the layer in the x and y axes in metres, starting from (x,y)=(0,0).
+        z: the z position of the top of layer in metres. The bottom of the layer will be located at z-size
+        size: the voxel size in metres. Must be such that lw is divisible by the specified size.
+        hodoscopes: The set of initialised hodoscopes to contain in the detector layer
+    """
 
     def __init__(self, 
                  pos:str, 
@@ -31,19 +55,20 @@ class HodoscopeDetectorLayer(AbsDetectorLayer):
         if isinstance(hodoscopes[0], Hodoscope):
             self.type_label = "hodoscope"
             self._n_costs = len(self.hodoscopes)
+        else:
+            raise TypeError("Provided hodoscopes have type {} and not Hodoscope.".format(type(hodoscopes[0])))
 
     @staticmethod
     def get_device(hodoscopes: nn.ModuleList) -> torch.device:
-
         r"""
-        Helper method to ensure that all panels are on the same device, and return that device.
-        If not all the panels are on the same device, then an exception will be raised.
+        Helper method to ensure that all hodoscopes are on the same device, and return that device.
+        If not all the hodoscopes are on the same device, then an exception will be raised.
 
         Arguments:
-            panels: ModuleLists of either :class:`~tomopt.volume.panel.DetectorPanel` or :class:`~tomopt.volume.heatmap.DetectorHeatMap` objects on device
+            hodoscopes: ModuleLists :class:`Hodoscope` objects on device
 
         Returns:
-            Device on which all the panels are.
+            Device on which all the hodoscopes are.
         """
 
         device = hodoscopes[0].device
