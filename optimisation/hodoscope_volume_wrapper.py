@@ -1,38 +1,18 @@
-
 from __future__ import annotations
 
-from abc import ABCMeta, abstractmethod
-from collections import defaultdict
-from typing import Any, Dict, List, Optional, Tuple, Type, Union
+from typing import List, Optional, Type
 
-import numpy as np
-import torch
-from fastcore.all import Path
-from fastprogress import master_bar, progress_bar
-from fastprogress.fastprogress import ConsoleProgressBar, NBProgressBar, ProgressBar
-from torch import Tensor
-from torch.optim.optimizer import Optimizer
-
-from tomopt.core import DEVICE, PartialOpt
+from tomopt.core import PartialOpt
 from tomopt.inference import AbsVolumeInferrer, PanelX0Inferrer, ScatterBatch
-from tomopt.muon import AbsMuonGenerator, MuonBatch, MuonGenerator2016
+from tomopt.muon import AbsMuonGenerator
 from tomopt.optimisation.loss.loss import AbsDetectorLoss
-from tomopt.volume import AbsDetectorLayer, PanelDetectorLayer, Volume
-from tomopt.optimisation.callbacks import (
-    Callback,
-    CyclicCallback,
-    EvalMetric,
-    MetricLogger,
-    PredHandler,
-    WarmupCallback,
-)
-from tomopt.optimisation.data import PassiveYielder
-from tomopt.optimisation.wrapper import FitParams, AbsVolumeWrapper
+from tomopt.volume import AbsDetectorLayer, Volume
+from tomopt.optimisation.wrapper import AbsVolumeWrapper
 from volume.hodoscopelayer import HodoscopeDetectorLayer
 
 class HodoscopeVolumeWrapper(AbsVolumeWrapper):
     r"""
-    Volume wrapper for volumes with :class:`~tomopt.volume.panel.DetectorPanel`-based detectors.
+    Volume wrapper for volumes with :class:`~volume.panel.HodoscopeDetectorPanel`-based detectors.
 
     Volume wrappers are designed to contain a :class:`~tomopt.volume.volume.Volume` and provide means of optimising the detectors it contains,
     via their :meth:`~tomopt.optimisation.wrapper.volume_wrapper.AbsVolumeWrapper.fit` method.
@@ -149,9 +129,8 @@ class HodoscopeVolumeWrapper(AbsVolumeWrapper):
 
     Arguments:
         volume: the volume containing the detectors to be optimised
-        xy_pos_opt: uninitialised optimiser to be used for adjusting the xy position of panels
-        z_pos_opt: uninitialised optimiser to be used for adjusting the z position of panels
-        xy_span_opt: uninitialised optimiser to be used for adjusting the xy size of panels
+        xy_pos_opt: uninitialised optimiser to be used for adjusting the xy position of hodoscopes
+        z_pos_opt: uninitialised optimiser to be used for adjusting the z position of hodoscopes
         budget_opt: optional uninitialised optimiser to be used for adjusting the fractional assignment of budget to the panels
         loss_func: optional loss function (required if planning to optimise the detectors)
         partial_scatter_inferrer: uninitialised class to be used for inferring muon scatter variables and trajectories
@@ -177,7 +156,7 @@ class HodoscopeVolumeWrapper(AbsVolumeWrapper):
             partial_opts={
                 "xy_pos_opt": xy_pos_opt,
                 "z_pos_opt": z_pos_opt,
-                "xy_span_opt": xyz_span_opt,
+                "xyz_span_opt": xyz_span_opt,
                 "budget_opt": budget_opt,
             },
             loss_func=loss_func,
@@ -194,7 +173,6 @@ class HodoscopeVolumeWrapper(AbsVolumeWrapper):
         volume: Volume,
         xy_pos_opt: PartialOpt,
         z_pos_opt: PartialOpt,
-        xy_span_opt: PartialOpt,
         budget_opt: Optional[PartialOpt] = None,
         loss_func: Optional[AbsDetectorLoss],
         partial_scatter_inferrer: Type[ScatterBatch] = ScatterBatch,
@@ -202,14 +180,13 @@ class HodoscopeVolumeWrapper(AbsVolumeWrapper):
         mu_generator: Optional[AbsMuonGenerator] = None,
     ) -> AbsVolumeWrapper:
         r"""
-        Instantiates a new `PanelVolumeWrapper` and loads saved detector and optimiser parameters
+        Instantiates a new `HodoscopeVolumeWrapper` and loads saved detector and optimiser parameters
 
         Arguments:
             name: file name with saved detector and optimiser parameters
             volume: the volume containing the detectors to be optimised
-            xy_pos_opt: uninitialised optimiser to be used for adjusting the xy position of panels
-            z_pos_opt: uninitialised optimiser to be used for adjusting the z position of panels,
-            xy_span_opt: uninitialised optimiser to be used for adjusting the xy size of panels,
+            xy_pos_opt: uninitialised optimiser to be used for adjusting the xy position of hodoscopes
+            z_pos_opt: uninitialised optimiser to be used for adjusting the z position of hodoscopes,
             budget_opt: optional uninitialised optimiser to be used for adjusting the fractional assignment of budget to the panels
             loss_func: optional loss function (required if planning to optimise the detectors)
             partial_scatter_inferrer: uninitialised class to be used for inferring muon scatter variables and trajectories
@@ -221,7 +198,6 @@ class HodoscopeVolumeWrapper(AbsVolumeWrapper):
             volume=volume,
             xy_pos_opt=xy_pos_opt,
             z_pos_opt=z_pos_opt,
-            xy_span_opt=xy_span_opt,
             budget_opt=budget_opt,
             loss_func=loss_func,
             partial_scatter_inferrer=partial_scatter_inferrer,
@@ -243,14 +219,11 @@ class HodoscopeVolumeWrapper(AbsVolumeWrapper):
         dets: List[HodoscopeDetectorLayer] = []
 
         for d in all_dets:
-            # if isinstance(d, PanelDetectorLayer):
             if isinstance(d, AbsDetectorLayer):
-
                 dets.append(d)
         self.opts = {
             "xy_pos_opt": kwargs["xy_pos_opt"]((h.xy for l in dets for h in l.hodoscopes)),
             "z_pos_opt": kwargs["z_pos_opt"]((h.z for l in dets for h in l.hodoscopes)),
-            "xyz_span_opt": kwargs["z_pos_opt"]((h.xyz_span for l in dets for h in l.hodoscopes)),
         }
         if kwargs["budget_opt"] is not None:
             self.opts["budget_opt"] = kwargs["budget_opt"]((p for p in [self.volume.budget_weights]))
