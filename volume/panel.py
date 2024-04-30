@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from torch import Tensor
+from torch import nn
 
 from tomopt.core import DEVICE
 from tomopt.muon import MuonBatch
@@ -143,8 +144,9 @@ class HodoscopeDetectorPanel:
 
         if not isinstance(self.resolution, Tensor):
             raise ValueError(f"{self.resolution} is not a Tensor for some reason.")  # To appease MyPy
-        if self.training or not self.realistic_validation:
+        if self.hod.training or not self.realistic_validation:
             g = self.get_gauss()
+            print(self.xy)
             res = self.resolution * torch.exp(g.log_prob(xy)) / torch.exp(g.log_prob(self.xy))
             res = torch.clamp_min(res, 1e-10)  # To avoid NaN gradients
         else:
@@ -173,7 +175,7 @@ class HodoscopeDetectorPanel:
 
         if not isinstance(self.efficiency, Tensor):
             raise ValueError(f"{self.efficiency} is not a Tensor for some reason.")  # To appease MyPy
-        if self.training or not self.realistic_validation:
+        if self.hod.training or not self.realistic_validation:
             g = self.get_gauss()
             scale = (torch.exp(g.log_prob(xy)) / torch.exp(g.log_prob(self.xy))).prod(dim=-1)
             eff = self.efficiency * scale
@@ -217,7 +219,7 @@ class HodoscopeDetectorPanel:
         res = self.get_resolution(true_mu_xy, mask)
         rel_xy = rel_xy + (torch.randn((len(mu), 2), device=self.device) / res)
 
-        if not self.training and self.realistic_validation:  # Prevent reco hit from exiting panel
+        if not self.hod.training and self.realistic_validation:  # Prevent reco hit from exiting panel
             np_span = span.detach().cpu().numpy()
             rel_xy[mask] = torch.stack([torch.clamp(rel_xy[mask][:, 0], 0, np_span[0]), torch.clamp(rel_xy[mask][:, 1], 0, np_span[1])], dim=-1)
         reco_xy = xy0 + rel_xy
