@@ -4,26 +4,21 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from torch import Tensor
-from torch import nn
 
 from tomopt.core import DEVICE
 from tomopt.muon import MuonBatch
 
 r"""
-Provides implementations of class simulating panel-style detectors with learnable positions and xy sizes.
+Provides implementations of class simulating panel-style detectors to be contained in a Hodoscope.
 """
 
 class HodoscopeDetectorPanel:
     r"""
-    Provides an infinitely thin, rectangular panel in the xy plane, centred at a learnable xyz position (metres, in absolute position in the volume frame),
-    with a learnable width in x and y (`xy_span`).
-    Whilst this class can be used manually, it is designed to be used by the :class:`~tomopt.volume.layer.PanelDetectorLayer` class.
-
-    Despite inheriting from `nn.Module`, the `forward` method should not be called, instead passing a :class:`~tomopt.muon.muon_batch.MuonBatch` to the
-    `get_hits` method will return hits corresponding to the muons.
+    Provides an infinitely thin, rectangular panel in the xy plane.
+    Whilst this class can be used manually, it is designed to be used by the `Hodoscope` class.
 
     During training model (`.train()` or `.training` is True), a continuous model of the resolution and efficiency will be used, such that hits are differentiable w.r.t.
-    the learnable parameters of the panel. This means that muons outside of the physical panel will have hits at non-zero resolution.
+    the learnable parameters of the hodoscope containing the panel. This means that muons outside of the physical panel will have hits at non-zero resolution.
     The current model is a 2D uncorrelated Gaussian in xy, centred over the panel, with width parameters equal to the xy_spans/4,
     i.e. the panel is 4-sigma across.
 
@@ -35,6 +30,8 @@ class HodoscopeDetectorPanel:
     Muons inside the panel will have the full resolution and efficiency of the panel,
     but hits will not be differentiable w.r.t. the panel xy-position or xy-span.
     If `realistic_validation` is False, then the continuous model will be used also in evaluation mode.
+    
+    WARNING: The current implementation of the class is designed to be used with `realistic_validation` set to False.
 
     The cost of the panel is based on the supplied cost per metre squared, and the current area of the panel, according to its learnt xy-span.
     Panels can also be run in "fixed-budget" mode, in which a cost of the panel is specified via the `.assign_budget` method.
@@ -46,11 +43,10 @@ class HodoscopeDetectorPanel:
     however the :class"`~tomopt.volume.volume.Volume` class will pass through all panels and initialise their budgets.
 
     Arguments:
-        res: resolution of the panel in m^-1, i.e. a higher value improves the precision on the hit recording
-        eff: efficiency of the hit recording of the panel, indicated as a probability [0,1]
-        init_xyz: initial xyz position of the panel in metres in the volume frame
         init_xy_span: initial xy-span (total width) of the panel in metres
         m2_cost: the cost in unit currency of the 1 square metre of detector
+        hod: the parent hodoscope containing the panel.
+        idx: the index of the panel within the hodoscope, idx = 0 corresponding to the top panel.
         budget: optional required cost of the panel. Based on the span and cost per m^2, the panel will resize to meet the required cost
         realistic_validation: if True, will use the physical interpretation of the panel during evaluation
         device: device on which to place tensors
@@ -67,8 +63,10 @@ class HodoscopeDetectorPanel:
         device: torch.device = DEVICE,
     ):
         r"""
-        Panel initialiser with user-supplied initial positions and widths.
-        The resolution and efficiency remain fixed at the specified values.
+        Panel initialiser with user-supplied width. The panel's xy position is set to the parent hodoscope one, 
+        assuming that the panel is centered within the hodoscope. 
+        The panel's z position is computed from the parent hodoscope z position and the panel's index (1st, 2nd, 3rd, etc..). 
+        The resolution and efficiency remain fixed at the values specified by the parent hodoscope.
         If intending to run in "fixed-budget" mode, then a budget can be specified here,
         however the :class"`~tomopt.volume.volume.Volume` class will pass through all panels and initialise their budgets.
         """
@@ -80,10 +78,9 @@ class HodoscopeDetectorPanel:
         self.assign_budget(budget)
         self.hod = hod
         self.idx = idx
-        self.m2_cost = self.hod.m2_cost
+        self.m2_cost = 1.
         self.resolution = self.hod.resolution
         self.efficiency = self.hod.efficiency
-
 
     def __repr__(self) -> str:
         return f"""{self.__class__} located at xy={self.xy.data}, z={self.z.data}, and xy span {self.get_scaled_xy_span().data} with budget scale {self.budget_scale.data}"""
@@ -146,7 +143,6 @@ class HodoscopeDetectorPanel:
             raise ValueError(f"{self.resolution} is not a Tensor for some reason.")  # To appease MyPy
         if self.hod.training or not self.realistic_validation:
             g = self.get_gauss()
-            print(self.xy)
             res = self.resolution * torch.exp(g.log_prob(xy)) / torch.exp(g.log_prob(self.xy))
             res = torch.clamp_min(res, 1e-10)  # To avoid NaN gradients
         else:
@@ -288,5 +284,3 @@ class HodoscopeDetectorPanel:
     @property
     def xy(self) -> Tensor:
         return self.hod.xy
-
-    
