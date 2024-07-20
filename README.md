@@ -79,10 +79,9 @@ ssh -N -f -L localhost:8890:localhost:8888 username@gateway_hostname # on your l
 
 ## External repos
 
-N.B. Most are not currently public
 
 - [tomopt](https://github.com/GilesStrong/tomopt) public. Contains the core functionality
 
 ## Authors
 
-The TomOptCargo project, and its continued development and support, is the result of the combined work of many people, whose contributions are summarised in [the author list](https://github.com/vischia/TomOptCargo/blob/main/AUTHORS.md)
+The TomOptCargo project, and its continued development and support, is the result of the combined work of many people, whose contributions are summarised in [the author list](https://github.com/vischia/TomOptCargo/blob/master/AUTHORS.md)
