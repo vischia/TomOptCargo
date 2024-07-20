@@ -124,8 +124,8 @@ In order of appearance in the companion contribution to the Maresec conference t
 
 ### Other roles:
 
-- Funding acquisition (M. Lagrange)
-- Supervision (M. Lagrange)
+- Funding acquisition (Z Daher, M. Lagrange)
+- Supervision (Z. Daher, M. Lagrange)
 - Meeting attendance
 - Advertisement/mention of TomOpt in talks
 
