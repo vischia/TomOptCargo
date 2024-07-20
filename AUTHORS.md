@@ -10,7 +10,7 @@ In order of appearance in the companion contribution to the Maresec conference t
 
 ### 2023 - present, Université catholique de Louvain, Belgium.
 
-<img src="docs/source/_static/imgs/authors/author.png" style="width:auto;height:100px" />
+<img src="author_info//author.png" style="width:auto;height:100px" />
 
 ### Code contributions:
 
@@ -26,7 +26,7 @@ In order of appearance in the companion contribution to the Maresec conference t
 
 ### start year - end year / present. Institute, Country.
 
-<img src="docs/source/_static/imgs/authors/author.png" style="width:auto;height:100px" />
+<img src="author_info//author.png" style="width:auto;height:100px" />
 
 ### Code contributions:
 
@@ -36,7 +36,7 @@ In order of appearance in the companion contribution to the Maresec conference t
 
 ### 2021 - present. Université catholique de Louvain, Belgium.
 
-<img src="docs/source/_static/imgs/authors/maxime.png" style="width:auto;height:100px" />
+<img src="author_info//maxime.png" style="width:auto;height:100px" />
 
 ### Code contributions:
 
@@ -58,7 +58,7 @@ In order of appearance in the companion contribution to the Maresec conference t
 
 ### 2024 - present. Universidad de Oviedo, Spain.
 
-<img src="docs/source/_static/imgs/authors/maxime.png" style="width:auto;height:100px" />
+<img src="author_info//maxime.png" style="width:auto;height:100px" />
 
 ### Code contributions:
 
@@ -72,7 +72,7 @@ In order of appearance in the companion contribution to the Maresec conference t
 
 ### 2021 - present. MODE Collaboration, independent researcher.
 
-<img src="docs/source/_static/imgs/authors/giles.png" style="width:auto;height:100px" />
+<img src="author_info//giles.png" style="width:auto;height:100px" />
 
 ### Code contributions:
 
@@ -87,7 +87,7 @@ In order of appearance in the companion contribution to the Maresec conference t
 
 ### 2024 - present. Universidad de Oviedo, Spain.
 
-<img src="docs/source/_static/imgs/authors/maxime.png" style="width:auto;height:100px" />
+<img src="author_info//maxime.png" style="width:auto;height:100px" />
 
 ### Code contributions:
 
@@ -101,7 +101,7 @@ In order of appearance in the companion contribution to the Maresec conference t
 
 ### 2021 - present. INFN-Padova, Italy.
 
-<img src="docs/source/_static/imgs/authors/tommaso.png" style="width:auto;height:100px" />
+<img src="author_info//tommaso.png" style="width:auto;height:100px" />
 
 ### Code contributions:
 
@@ -115,7 +115,7 @@ In order of appearance in the companion contribution to the Maresec conference t
 
 ### 2021 - present. Université catholique de Louvain, Belgium.
 
-<img src="docs/source/_static/imgs/authors/picture_andrea_giammanco_tokyo_2018.png" style="width:auto;height:100px" />
+<img src="author_info//picture_andrea_giammanco_tokyo_2018.png" style="width:auto;height:100px" />
 
 ### Code contributions:
 
@@ -133,7 +133,7 @@ In order of appearance in the companion contribution to the Maresec conference t
 
 ### 2023 - present. Muon Tomography Systems, Spain.
 
-<img src="docs/source/_static/imgs/authors/picture_andrea_giammanco_tokyo_2018.png" style="width:auto;height:100px" />
+<img src="author_info//picture_andrea_giammanco_tokyo_2018.png" style="width:auto;height:100px" />
 
 ### Code contributions:
 
@@ -148,7 +148,7 @@ In order of appearance in the companion contribution to the Maresec conference t
 
 ### 2021 - present. Université catholique de Louvain, Belgium.
 
-<img src="docs/source/_static/imgs/authors/pietro.png" style="width:auto;height:100px" />
+<img src="author_info/pietro.png" style="width:auto;height:100px" />
 
 ### Code contributions:
 
@@ -158,7 +158,7 @@ In order of appearance in the companion contribution to the Maresec conference t
 ### Other roles:
 
 - Supervision (Samuel Àlvarez Lueje)
-- Organization of activities (initial hackathon with Zahraa Zaher, Maxime Lagrange, and Samuel Àlvarez Lueje))
+- Organization of activities (initial hackathon with Zahraa Zaher, Maxime Lagrange, and Samuel Àlvarez Lueje)
 - Advertisement/mention of TomOptCargo in talks
 - Conference proceedings writing
 - Paper writing
@@ -168,7 +168,7 @@ In order of appearance in the companion contribution to the Maresec conference t
 
 ### 2021 - present. Lebanese University, Lebanon.
 
-<img src="docs/source/_static/imgs/authors/hz.gif" style="width:auto;height:100px" />
+<img src="author_info/hz.gif" style="width:auto;height:100px" />
 
 ### Code contributions:
 
