@@ -3,7 +3,7 @@ import numpy as np
 import torch
 from torch import Tensor, nn
 
-from volume.panel import HodoscopeDetectorPanel
+from volume.panel import HodoscopeDetectorPanel, SigmoidHodoscopeDetectorPanel
 
 from tomopt.core import DEVICE
 
@@ -42,6 +42,8 @@ class Hodoscope(nn.Module):
                  res: float = 1000,
                  eff: float = 0.9,
                  realistic_validation: bool = False,
+                 panel_type: str = 'DetectorPanel',
+                 smooth: Union[float, Tensor] = None,
                  device: torch.device = DEVICE):
         
         if res <= 0:
@@ -53,11 +55,14 @@ class Hodoscope(nn.Module):
         self.realistic_validation, self.device = realistic_validation, device
         self.xy = nn.Parameter(torch.tensor(init_xyz[:2], device=self.device))
         self.z = nn.Parameter(torch.tensor(init_xyz[2:3], device=self.device))
+        # self.init_z = init_xyz[-1]
         self.xyz_span = torch.Tensor(init_xyz_span, device=self.device)
         self.register_buffer("resolution", torch.tensor(float(res), device=self.device))
         self.register_buffer("efficiency", torch.tensor(float(eff), device=self.device))
         self.xyz_gap = xyz_gap
         self.n_panels = n_panels
+        self.panel_type = panel_type
+        self.smooth = smooth
         self.panels = self.generate_init_panels()
         self.device = device
 
@@ -73,11 +78,23 @@ class Hodoscope(nn.Module):
         Returns:
             DetectorPanels as a nn.ModuleList.
         """
-        return [HodoscopeDetectorPanel(realistic_validation = self.realistic_validation,
-                                        idx = i, 
-                                        init_xy_span = [self.xyz_span[0] - 2 * self.xyz_gap[0], self.xyz_span[1] - 2 * self.xyz_gap[1]],
-                                        device = DEVICE, 
-                                        hod = self) for i in range(self.n_panels)]
+        if self.panel_type == 'DetectorPanel':
+            return [HodoscopeDetectorPanel(realistic_validation = self.realistic_validation,
+                                            idx = i, 
+                                            init_xy_span = [self.xyz_span[0] - 2 * self.xyz_gap[0], self.xyz_span[1] - 2 * self.xyz_gap[1]],
+                                            device = DEVICE, 
+                                            hod = self) for i in range(self.n_panels)]
+                
+        elif self.panel_type == 'SigmoidDetectorPanel':
+            return [SigmoidHodoscopeDetectorPanel(smooth = self.smooth,
+                                            realistic_validation = self.realistic_validation,
+                                            idx = i, 
+                                            init_xy_span = [self.xyz_span[0] - 2 * self.xyz_gap[0], self.xyz_span[1] - 2 * self.xyz_gap[1]],
+                                            device = DEVICE, 
+                                            hod = self) for i in range(self.n_panels)]
+        
+        else:
+            raise ValueError(f"Detector type {self.panel_type} currently not supported.")
 
     def clamp_params(self, xyz_low: Tuple[float, float, float], xyz_high: Tuple[float, float, float]) -> None:
         r"""
