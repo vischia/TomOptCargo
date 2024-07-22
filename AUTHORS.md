@@ -14,7 +14,9 @@ In order of appearance in the companion contribution to the Maresec conference t
 
 ### Code contributions:
 
-- add
+- adaptation of optimization routines
+- design and implementation of hodoscopeLayer
+- performance studies 
 
 ### Other roles:
 
@@ -40,11 +42,9 @@ In order of appearance in the companion contribution to the Maresec conference t
 
 ### Code contributions:
 
-- Investigation of:
-  - Detector scattering of muons
-  - Momentum estimation
-  - Angular statistics reconstruction method for volume inference
-- Assistance with muon coordinate-system
+- adaptation of optimization routines
+- design and implementation of hodoscopeLayer
+- performance studies 
 - Assistance, advice, and information for various aspects of muon tomography
 
 ### Other roles:
@@ -62,11 +62,13 @@ In order of appearance in the companion contribution to the Maresec conference t
 
 ### Code contributions:
 
-- add
+- participation in the design and implementation of hodoscopes model and hodoscopelayer
+- implementation of accessory functionalities
+- implementation of the truck model
 
 ### Other roles:
 
-- add
+- participation in meetings
 
 ## Giles Chatham Strong (@GilesStrong)
 
@@ -152,7 +154,8 @@ In order of appearance in the companion contribution to the Maresec conference t
 
 ### Code contributions:
 
-- Conceptual planning, design and initial implementation of the core structure of TomOptCargo
+- Conceptual planning, design and initial implementation of the core structure of TomOptCargo, including hodoscopes and hodoscope layer
+- Design, planning, and supervision for the truck model
 - Conceptual planning, implementation, and investigation of maximum likelihood estimate for X0 inference
 
 ### Other roles:
