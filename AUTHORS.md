@@ -24,16 +24,6 @@ In order of appearance in the companion contribution to the Maresec conference t
 - Conference proceedings writing
 - Paper writing
   
-## Name Surname (@Github_name)
-
-### start year - end year / present. Institute, Country.
-
-<img src="author_info//author.png" style="width:auto;height:100px" />
-
-### Code contributions:
-
-- list
-
 ## Maxime Lagrange (@MaximeLagrange)
 
 ### 2021 - present. Université catholique de Louvain, Belgium.
