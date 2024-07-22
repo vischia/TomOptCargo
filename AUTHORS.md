@@ -138,7 +138,7 @@ In order of appearance in the companion contribution to the Maresec conference t
 
 ## Pietro Vischia (@vischia)
 
-### 2021 - present. Université catholique de Louvain, Belgium.
+### 2021 - present. Universidad de Oviedo (Spain).
 
 <img src="author_info/pietro.png" style="width:auto;height:100px" />
 
