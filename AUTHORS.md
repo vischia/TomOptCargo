@@ -125,15 +125,16 @@ In order of appearance in the companion contribution to the Maresec conference t
 
 ### 2023 - present. Muon Tomography Systems, Spain.
 
-<img src="author_info//picture_andrea_giammanco_tokyo_2018.png" style="width:auto;height:100px" />
+<img src="author_info//AitorOrioAlonso.JPG" style="width:auto;height:100px" />
 
 ### Code contributions:
 
-- 
+- Assistance, advice, and information for various aspects of muon tomography
 
 ### Other roles:
 
-- add
+- Participation in meetings
+- Paper writing support
 
 
 ## Pietro Vischia (@vischia)
