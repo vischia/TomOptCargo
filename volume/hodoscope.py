@@ -33,6 +33,7 @@ class Hodoscope(nn.Module):
         realistic_validation: If True, will use the physical interpretation of the panel during evaluation
         device: Device on which to place tensors
     """
+
     def __init__(
         self,
         *,
@@ -66,7 +67,7 @@ class Hodoscope(nn.Module):
 
     def __getitem__(self, idx: int) -> DetectorPanel:
         return self.panels[idx]
-    
+
     def __repr__(self) -> str:
         return f"Hodoscope located at z = {self.z.data.item()} m"
 
@@ -75,59 +76,74 @@ class Hodoscope(nn.Module):
         Computes the initial position of the hodoscope panels.
         Panels' xy position is the hodoscope xy position `.xy`.
         Panels' z position is initialized such that the gap between the top/bottom of the hodoscope and the first/last panel is `.xyz_gap[2]`.
-        
+
         Returns:
             Panels x,y,z positions as a list of tuples.
         """
         span_z = self.xyz_span[2] - 2 * self.xyz_gap[2]
-        return [(self.xy[0].item(), self.xy[1].item(), 
-                 self.z.item() - self.xyz_gap[2] - span_z * i / (self.n_panels - 1)) 
-                for i in range(self.n_panels)]
-    
+        return [
+            (
+                self.xy[0].item(),
+                self.xy[1].item(),
+                self.z.item() - self.xyz_gap[2] - span_z * i / (self.n_panels - 1),
+            )
+            for i in range(self.n_panels)
+        ]
+
     def get_init_panels_span(self) -> List[Tuple[float, float]]:
         """
         Computes the initial span of the hodoscope panels.
-        Panels' xy span is initialized such that the gap between the left/right edge of the hodoscope 
+        Panels' xy span is initialized such that the gap between the left/right edge of the hodoscope
         and the left/right edge of the panels is `.xyz_gap[0]`, `.xyz_gap[1]` along x and y respectively.
-        
+
         Returns:
             Panels x,y spans as a list of tuples.
         """
-        return [(self.xyz_span[0] - 2 * self.xyz_gap[0],
-                 self.xyz_span[1] - 2 * self.xyz_gap[1]) 
-                for _ in range(self.n_panels)]
+        return [
+            (
+                self.xyz_span[0] - 2 * self.xyz_gap[0],
+                self.xyz_span[1] - 2 * self.xyz_gap[1],
+            )
+            for _ in range(self.n_panels)
+        ]
 
     def generate_init_panels(self) -> nn.ModuleList:
         r"""
-        Generates `.n_panels` DetectorPanels or SigmoidDetectorPanels according to the chosen `.panel_type`. 
+        Generates `.n_panels` DetectorPanels or SigmoidDetectorPanels according to the chosen `.panel_type`.
         Panels' xyz position and span are computed via the `get_init_panels_pos` and `get_init_panels_span` methods.
 
         Returns:
             DetectorPanels instances as a nn.ModuleList.
         """
 
-        panel_cls = DetectorPanel if self.panel_type == 'DetectorPanel' else SigmoidDetectorPanel
+        panel_cls = (
+            DetectorPanel
+            if self.panel_type == "DetectorPanel"
+            else SigmoidDetectorPanel
+        )
         if panel_cls not in [DetectorPanel, SigmoidDetectorPanel]:
-            raise ValueError(f"Detector type {self.panel_type} currently not supported.")
-        
+            raise ValueError(
+                f"Detector type {self.panel_type} currently not supported."
+            )
+
         panel_positions = self.get_init_panels_pos()
         panel_spans = self.get_init_panels_span()
-        
+
         panels = []
         for i in range(self.n_panels):
             panel_args = {
-                'res': self.res,
-                'eff': self.eff,
-                'realistic_validation': self.realistic_validation,
-                'init_xyz': panel_positions[i],
-                'init_xy_span': panel_spans[i],
-                'device': self.device
+                "res": self.res,
+                "eff": self.eff,
+                "realistic_validation": self.realistic_validation,
+                "init_xyz": panel_positions[i],
+                "init_xy_span": panel_spans[i],
+                "device": self.device,
             }
-            if self.panel_type == 'SigmoidDetectorPanel':
-                panel_args['smooth'] = self.smooth
-            
+            if self.panel_type == "SigmoidDetectorPanel":
+                panel_args["smooth"] = self.smooth
+
             panels.append(panel_cls(**panel_args))
-        
+
         return nn.ModuleList(panels)
 
     def get_xyz_min(self) -> Tuple[float, float, float]:
@@ -135,18 +151,22 @@ class Hodoscope(nn.Module):
         Returns:
             The position of the hodoscope bottom left corner (meters, in absolute position in the volume frame).
         """
-        return (self.xy[0].item() - self.xyz_span[0].item() / 2, 
-                self.xy[1].item() - self.xyz_span[1].item() / 2, 
-                self.z.item() - self.xyz_span[2].item())
+        return (
+            self.xy[0].item() - self.xyz_span[0].item() / 2,
+            self.xy[1].item() - self.xyz_span[1].item() / 2,
+            self.z.item() - self.xyz_span[2].item(),
+        )
 
     def get_xyz_max(self) -> Tuple[float, float, float]:
         r"""
         Returns:
             The position of the hodoscope upper right corner (meters, in absolute position in the volume frame).
         """
-        return (self.xy[0].item() + self.xyz_span[0].item() / 2, 
-                self.xy[1].item() + self.xyz_span[1].item() / 2, 
-                self.z.item())
+        return (
+            self.xy[0].item() + self.xyz_span[0].item() / 2,
+            self.xy[1].item() + self.xyz_span[1].item() / 2,
+            self.z.item(),
+        )
 
     def get_cost(self) -> Tensor:
         r"""
@@ -168,13 +188,16 @@ class Hodoscope(nn.Module):
             "dz": self.xyz_span[2].detach().item(),
         }
 
-        panels_data = [{
-            "x": p.xy[0].detach().item(), 
-            "y": p.xy[1].detach().item(), 
-            "z": p.z.detach().item(), 
-            "dx": p.xy_span[0].detach().item(), 
-            "dy": p.xy_span[1].detach().item()
-        } for p in self.panels]
+        panels_data = [
+            {
+                "x": p.xy[0].detach().item(),
+                "y": p.xy[1].detach().item(),
+                "z": p.z.detach().item(),
+                "dx": p.xy_span[0].detach().item(),
+                "dy": p.xy_span[1].detach().item(),
+            }
+            for p in self.panels
+        ]
 
         def normalize(x, xmin, xmax):
             return (x - xmin) / (xmax - xmin)
@@ -183,7 +206,7 @@ class Hodoscope(nn.Module):
         fig.suptitle(
             f"Hodoscope at x,y,z = {self.xy[0].detach().item():.1f},{self.xy[1].detach().item():.1f},{self.z.detach().item():.1f} m",
             fontweight="bold",
-            fontsize=15
+            fontsize=15,
         )
 
         for ax in axs:
@@ -192,17 +215,23 @@ class Hodoscope(nn.Module):
 
         def set_limits(ax, axis, hod_data, span_key, gap_key):
             ax.set_xlim(
-                hod_data[axis] - 2 * self.xyz_gap[gap_key], 
-                hod_data[axis] + self.xyz_span[span_key].detach().item() + 2 * self.xyz_gap[gap_key]
+                hod_data[axis] - 2 * self.xyz_gap[gap_key],
+                hod_data[axis]
+                + self.xyz_span[span_key].detach().item()
+                + 2 * self.xyz_gap[gap_key],
             )
             ax.set_ylim(
-                hod_data["z"] - 2 * self.xyz_gap[2], 
-                hod_data["z"] + self.xyz_span[2].detach().item() + 2 * self.xyz_gap[2]
+                hod_data["z"] - 2 * self.xyz_gap[2],
+                hod_data["z"] + self.xyz_span[2].detach().item() + 2 * self.xyz_gap[2],
             )
 
         # Plot XY view
-        xz_hod = Rectangle((hod_data["x"], hod_data["z"]), hod_data["dx"], hod_data["dz"])
-        axs[0].add_collection(PatchCollection([xz_hod], facecolor="green", alpha=.2, edgecolor="green"))
+        xz_hod = Rectangle(
+            (hod_data["x"], hod_data["z"]), hod_data["dx"], hod_data["dz"]
+        )
+        axs[0].add_collection(
+            PatchCollection([xz_hod], facecolor="green", alpha=0.2, edgecolor="green")
+        )
         set_limits(axs[0], "x", hod_data, 0, 0)
         axs[0].set_xlabel(r"$x$ [m]")
         axs[0].set_ylabel(r"$z$ [m]")
@@ -211,13 +240,21 @@ class Hodoscope(nn.Module):
             axs[0].axhline(
                 y=p["z"],
                 color="red",
-                xmin=normalize(p["x"] - p["dx"] / 2, axs[0].get_xlim()[0], axs[0].get_xlim()[1]),
-                xmax=normalize(p["x"] + p["dx"] / 2, axs[0].get_xlim()[0], axs[0].get_xlim()[1])
+                xmin=normalize(
+                    p["x"] - p["dx"] / 2, axs[0].get_xlim()[0], axs[0].get_xlim()[1]
+                ),
+                xmax=normalize(
+                    p["x"] + p["dx"] / 2, axs[0].get_xlim()[0], axs[0].get_xlim()[1]
+                ),
             )
 
         # Plot YZ view
-        yz_hod = Rectangle((hod_data["y"], hod_data["z"]), hod_data["dy"], hod_data["dz"])
-        axs[1].add_collection(PatchCollection([yz_hod], facecolor="green", alpha=.2, edgecolor="green"))
+        yz_hod = Rectangle(
+            (hod_data["y"], hod_data["z"]), hod_data["dy"], hod_data["dz"]
+        )
+        axs[1].add_collection(
+            PatchCollection([yz_hod], facecolor="green", alpha=0.2, edgecolor="green")
+        )
         set_limits(axs[1], "y", hod_data, 1, 1)
         axs[1].set_xlabel(r"$y$ [m]")
         axs[1].set_ylabel(r"$z$ [m]")
@@ -226,31 +263,45 @@ class Hodoscope(nn.Module):
             axs[1].axhline(
                 y=p["z"],
                 color="red",
-                xmin=normalize(p["y"] - p["dy"] / 2, axs[1].get_xlim()[0], axs[1].get_xlim()[1]),
-                xmax=normalize(p["y"] + p["dy"] / 2, axs[1].get_xlim()[0], axs[1].get_xlim()[1])
+                xmin=normalize(
+                    p["y"] - p["dy"] / 2, axs[1].get_xlim()[0], axs[1].get_xlim()[1]
+                ),
+                xmax=normalize(
+                    p["y"] + p["dy"] / 2, axs[1].get_xlim()[0], axs[1].get_xlim()[1]
+                ),
             )
 
         # Plot XZ view
-        xy_hod = Rectangle((hod_data["x"], hod_data["y"]), hod_data["dx"], hod_data["dy"])
+        xy_hod = Rectangle(
+            (hod_data["x"], hod_data["y"]), hod_data["dx"], hod_data["dy"]
+        )
         xy_panels = [
             Rectangle(
-                (panel_data["x"] - panel_data["dx"] / 2, panel_data["y"] - panel_data["dy"] / 2),
+                (
+                    panel_data["x"] - panel_data["dx"] / 2,
+                    panel_data["y"] - panel_data["dy"] / 2,
+                ),
                 panel_data["dx"],
-                panel_data["dy"]
-            ) for panel_data in panels_data
+                panel_data["dy"],
+            )
+            for panel_data in panels_data
         ]
 
-        axs[2].add_collection(PatchCollection([xy_hod], facecolor="green", alpha=.2, edgecolor="green"))
-        axs[2].add_collection(PatchCollection(xy_panels, facecolor="red", alpha=.2, edgecolor="red"))
+        axs[2].add_collection(
+            PatchCollection([xy_hod], facecolor="green", alpha=0.2, edgecolor="green")
+        )
+        axs[2].add_collection(
+            PatchCollection(xy_panels, facecolor="red", alpha=0.2, edgecolor="red")
+        )
 
         axs[2].set_xlim(
-            hod_data["x"] - 2 * self.xyz_gap[1], 
-            hod_data["x"] + self.xyz_span[0].detach().item() + 2 * self.xyz_gap[0]
+            hod_data["x"] - 2 * self.xyz_gap[1],
+            hod_data["x"] + self.xyz_span[0].detach().item() + 2 * self.xyz_gap[0],
         )
 
         axs[2].set_ylim(
-            hod_data["y"] - 2 * self.xyz_gap[2], 
-            hod_data["y"] + self.xyz_span[1].detach().item() + 2 * self.xyz_gap[1]
+            hod_data["y"] - 2 * self.xyz_gap[2],
+            hod_data["y"] + self.xyz_span[1].detach().item() + 2 * self.xyz_gap[1],
         )
 
         axs[2].set_xlabel(r"$x$ [m]")
