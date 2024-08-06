@@ -11,24 +11,30 @@ from tomopt.volume import DetectorHeatMap
 import matplotlib.patches as mpatches
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-def draw(volume:Volume, xlim: Tuple[float, float], ylim: Tuple[float, float], zlim: Tuple[float, float]) -> None:
-        r"""
-        Draws the layers/panels pertaining to the volume.
-        When using this in a jupyter notebook, use "%matplotlib notebook" to have an interactive plot that you can rotate.
 
-        Arguments:
-            xlim: the x axis range for the three-dimensional plot.
-            ylim: the y axis range for the three-dimensional plot.
-            zlim: the z axis range for the three-dimensional plot.
-        """
-        ax = plt.figure(figsize=(9, 9)).add_subplot(projection="3d")
-        ax.computed_zorder = False
-        # TODO: find a way to fix transparency overlap in order to have passive layers in front of bottom active layers.
-        passivearrays: List[Any] = []
-        activearrays: List[Any] = []
+def draw(
+    volume: Volume,
+    xlim: Tuple[float, float],
+    ylim: Tuple[float, float],
+    zlim: Tuple[float, float],
+) -> None:
+    r"""
+    Draws the layers/panels pertaining to the volume.
+    When using this in a jupyter notebook, use "%matplotlib notebook" to have an interactive plot that you can rotate.
 
-        for layer in volume.layers:
-            # fmt: off
+    Arguments:
+        xlim: the x axis range for the three-dimensional plot.
+        ylim: the y axis range for the three-dimensional plot.
+        zlim: the z axis range for the three-dimensional plot.
+    """
+    ax = plt.figure(figsize=(9, 9)).add_subplot(projection="3d")
+    ax.computed_zorder = False
+    # TODO: find a way to fix transparency overlap in order to have passive layers in front of bottom active layers.
+    passivearrays: List[Any] = []
+    activearrays: List[Any] = []
+
+    for layer in volume.layers:
+        # fmt: off
             if isinstance(layer, PassiveLayer):
                 lw, thez, size = layer.get_lw_z_size()
                 roundedz = np.round(thez.item(), 2)
@@ -130,21 +136,28 @@ def draw(volume:Volume, xlim: Tuple[float, float], ylim: Tuple[float, float], zl
                     activearrays.append([rect, col, p.z.data[0].item(), 0.2])
             else:
                 raise TypeError("Volume.draw does not yet support layers of type", type(layer))
-            # fmt: on
 
-        allarrays = activearrays + passivearrays
-        allarrays.sort(key=lambda x: x[2])
+    allarrays = activearrays + passivearrays
+    allarrays.sort(key=lambda x: x[2])
 
-        # fmt: off
-        for voxelandcolour in allarrays:
-            ax.add_collection3d(Poly3DCollection(voxelandcolour[0], facecolors=voxelandcolour[1], linewidths=1, edgecolors=voxelandcolour[1], alpha=voxelandcolour[3],
-                                                 zorder=voxelandcolour[2], sort_zpos=voxelandcolour[2]))
-        # fmt: on
-        plt.ylim(xlim)
-        plt.xlim(ylim)
-        ax.set_zlim(zlim)
-        plt.title("Volume layers")
-        red_patch = mpatches.Patch(color="red", label="Active Detector Layers")
-        pink_patch = mpatches.Patch(color="blue", label="Passive Layers")
-        ax.legend(handles=[red_patch, pink_patch])
-        plt.show()
+    for voxelandcolour in allarrays:
+        ax.add_collection3d(
+            Poly3DCollection(
+                voxelandcolour[0],
+                facecolors=voxelandcolour[1],
+                linewidths=1,
+                edgecolors=voxelandcolour[1],
+                alpha=voxelandcolour[3],
+                zorder=voxelandcolour[2],
+                sort_zpos=voxelandcolour[2],
+            )
+        )
+
+    plt.ylim(xlim)
+    plt.xlim(ylim)
+    ax.set_zlim(zlim)
+    plt.title("Volume layers")
+    red_patch = mpatches.Patch(color="red", label="Active Detector Layers")
+    pink_patch = mpatches.Patch(color="blue", label="Passive Layers")
+    ax.legend(handles=[red_patch, pink_patch])
+    plt.show()
