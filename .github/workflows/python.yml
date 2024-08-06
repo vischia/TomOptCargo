@@ -1,6 +1,16 @@
 name: Python CI
 
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - '**/*.py'
+    paths-ignore:
+      - '**/*.ipynb'
+  pull_request:
+    paths:
+      - '**/*.py'
+    paths-ignore:
+      - '**/*.ipynb'
 
 jobs:
   lint:
@@ -27,4 +37,3 @@ jobs:
     #   run: flake8 .
 
     # - name: Run Mypy
-    #   run: mypy .
