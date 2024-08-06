@@ -7,6 +7,29 @@ from tomopt.volume.panel import DetectorPanel, SigmoidDetectorPanel
 
 
 class Hodoscope(nn.Module):
+    r"""
+    Provides a hodoscope detection module made of multiple DetectorPanels, centered at a learnable xyz position (meters, in absolute position in the volume frame).
+    While this class can be used manually, it is designed to be used by the HodoscopeDetectorLayer class.
+
+    Instances of `DetectorPanel` or `SigmoidDetectorPanel` will be created within the hodoscope.
+    Panels' xy initial position is the hodoscope xy position `.xy`.
+    Panels' z position is initialized such that the gap between the top/bottom of the hodoscope and the first/last panel is `.xyz_gap[2]`.
+    Panels' xy span is initialized such that the gap between the left/right edge of the hodoscope and the left/right edge of the panels is `.xyz_gap[0]`, `.xyz_gap[1]` along x and y respectively.
+
+    The resolution and efficiency of each panel remain fixed at the specified values.
+
+    Arguments:
+        init_xyz: Initial xyz position of the top of the hodoscope (in meters in the volume frame)
+        init_xyz_span: Initial xyz-span (total width) of the hodoscope (in meters in the volume frame)
+        xyz_gap: Gap between the detector panels and the edges of the hodoscope (in meters)
+        n_panels: The number of detection panels within the hodoscope.
+        res: Resolution of the panels in m^-1, i.e., a higher value improves the precision on the hit recording
+        eff: Efficiency of the hit recording of the panels, indicated as a probability [0, 1]
+        m2_cost: The cost in unit currency of 1 square meter of detector
+        budget: Optional required cost of the panel. Based on the span and cost per m^2, the panel will resize to meet the required cost
+        realistic_validation: If True, will use the physical interpretation of the panel during evaluation
+        device: Device on which to place tensors
+    """
     def __init__(
         self,
         *,
@@ -44,12 +67,12 @@ class Hodoscope(nn.Module):
     def generate_init_panels(
         self,
     ) -> Union[List[DetectorPanel], List[SigmoidDetectorPanel]]:
-        r"""
-        Generates Detector panels based on the xy and z position (xy, z), the span of the hodoscope (xyz_span),
-        and the gap between the edge of the hodoscope and the panels (xyz_gap).
+        """
+        Generates `.n_panels` DetectorPanels or SigmoidDetectorPanels according to the chosen `.panel_type`. 
+        Panels' xyz position and span are computed via the `get_init_panels_pos` and `get_init_panels_span` methods.
 
         Returns:
-            DetectorPanels as a nn.ModuleList.
+            DetectorPanels instances as a nn.ModuleList.
         """
 
         if self.panel_type == "DetectorPanel":
@@ -111,6 +134,10 @@ class Hodoscope(nn.Module):
             )
 
     def get_xyz_min(self) -> Tuple[float, float, float]:
+        r"""
+        Returns:
+            The position of the hodoscope bottom left corner (meters, in absolute position in the volume frame).
+        """
         return [
             self.xy[0].item() - self.xyz_span[0].item(),
             self.xy[1].item() - self.xyz_span[1].item(),
@@ -118,6 +145,10 @@ class Hodoscope(nn.Module):
         ]
 
     def get_xyz_max(self) -> Tuple[float, float, float]:
+        r"""
+        Returns:
+            The position of the hodoscope upper right corner (meters, in absolute position in the volume frame).
+        """
         return [
             self.xy[0].item() + self.xyz_span[0].item(),
             self.xy[1].item() + self.xyz_span[1].item(),
@@ -125,4 +156,8 @@ class Hodoscope(nn.Module):
         ]
 
     def get_cost(self) -> Tensor:
+        r"""
+        Returns:
+            Current cost of the hodoscope, given the cost of its panels.
+        """
         return torch.sum(torch.Tensor([p.get_cost() for p in self.panels]))
