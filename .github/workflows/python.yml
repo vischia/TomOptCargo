@@ -4,13 +4,9 @@ on:
   push:
     paths:
       - '**/*.py'
-    paths-ignore:
-      - '**/*.ipynb'
   pull_request:
     paths:
       - '**/*.py'
-    paths-ignore:
-      - '**/*.ipynb'
 
 jobs:
   lint:
@@ -32,8 +28,12 @@ jobs:
 
     - name: Run Black
       run: black --check .
+      if: contains(github.event.head_commit.message, '.py')
 
     # - name: Run Flake8
     #   run: flake8 .
+    #   if: contains(github.event.head_commit.message, '.py')
 
     # - name: Run Mypy
+    #   run: mypy .
+    #   if: contains(github.event.head_commit.message, '.py')
