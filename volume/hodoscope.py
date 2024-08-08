@@ -69,7 +69,7 @@ class Hodoscope(nn.Module):
         return self.panels[idx]
 
     def __repr__(self) -> str:
-        return f"Hodoscope located at z = {self.z.data.item()} m"
+        return "Hodoscope located at z = {:.2f} m".format(self.z.data.item())
 
     def get_init_panels_pos(self) -> List[Tuple[float, float, float]]:
         """
@@ -288,10 +288,20 @@ class Hodoscope(nn.Module):
         ]
 
         axs[2].add_collection(
-            PatchCollection([xy_hod], facecolor="green", alpha=0.2, edgecolor="green")
+            PatchCollection(
+                [xy_hod],
+                facecolor="green",
+                alpha=0.2,
+                edgecolor="green",
+            )
         )
         axs[2].add_collection(
-            PatchCollection(xy_panels, facecolor="red", alpha=0.2, edgecolor="red")
+            PatchCollection(
+                xy_panels,
+                facecolor="red",
+                alpha=0.2,
+                edgecolor="red",
+            )
         )
 
         axs[2].set_xlim(
@@ -306,6 +316,32 @@ class Hodoscope(nn.Module):
 
         axs[2].set_xlabel(r"$x$ [m]")
         axs[2].set_ylabel(r"$y$ [m]")
+
+        # Plot hodoscope parameters
+        axs[0].scatter(
+            self.xy[0].detach().numpy(),
+            self.z.detach().numpy(),
+            color="blue",
+            marker="+",
+            label=r"initial $xyz$",
+            s=50,
+        )
+        axs[1].scatter(
+            self.xy[1].detach().numpy(),
+            self.z.detach().numpy(),
+            color="blue",
+            marker="+",
+            s=50,
+        )
+        axs[2].scatter(
+            self.xy[0].detach().numpy(),
+            self.xy[1].detach().numpy(),
+            color="blue",
+            marker="+",
+            s=50,
+        )
+
+        fig.legend(loc="lower left")
 
         plt.tight_layout()
         plt.show()
