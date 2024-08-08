@@ -156,9 +156,10 @@ def draw_volume_2D(
     hits: Optional[Tensor] = None,
     pocas: Optional[Tensor] = None,
     event: Optional[int] = None,
+    savename: Optional[str] = None,
 ) -> None:
-    fig, axs = plt.subplots(ncols=3, figsize=(10, 10))
-
+    fig, axs = plt.subplots(ncols=3, figsize=(12, 4))
+    fig.suptitle("Volume layout", fontsize=15, fontweight="bold")
     gap = 0.3  # m
 
     # min max coord of hodoscope layers
@@ -373,6 +374,9 @@ def draw_volume_2D(
         )
 
     plt.tight_layout()
+    if savename is not None:
+        plt.savefig(savename, bbox_inches="tight")
+
     plt.show()
 
 
