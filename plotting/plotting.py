@@ -5,6 +5,7 @@ from matplotlib.collections import PatchCollection
 from matplotlib.patches import Rectangle
 from typing import Tuple, Optional
 from torch import Tensor
+import math
 
 # TomOptCargo
 from volume.hodoscopelayer import HodoscopeDetectorLayer
@@ -376,6 +377,50 @@ def draw_volume_2D(
     plt.tight_layout()
     if savename is not None:
         plt.savefig(savename, bbox_inches="tight")
+
+    plt.show()
+
+
+def plot_muon_batch(muon_batch: MuonBatch, savename: Optional[str] = None) -> None:
+    fig, axs = plt.subplots(ncols = 3, nrows = 2, figsize = (12, 6))
+    axs = axs.ravel()
+
+    # Fig title
+    fig.suptitle(f"Batch of {len(muon_batch.z)} muons", fontsize = 15, fontweight = 'bold')
+
+    # Zenith angle
+    axs[0].hist(muon_batch.theta.numpy() * 180 / math.pi, bins = 40, alpha = .6)
+    axs[0].set_xlabel(r" Zenith angle $\theta$ [deg]")
+
+    # Azimuthal angle
+    axs[1].hist(muon_batch.phi.numpy() * 180 / math.pi, bins = 40, alpha = .6)
+    axs[1].set_xlabel(r" Azimuthal angle $\phi$ [deg]")
+
+    # Momentum 
+    axs[2].hist(muon_batch.mom.numpy(), bins = 40, alpha = .6)
+    axs[2].set_xlabel(r" Momentum $p$ [GeV]")
+
+    # Z position
+    axs[-3].hist(muon_batch.z.numpy(), bins = 40, alpha = .6)
+    axs[-3].set_xlabel(r"$z$ [m]")
+
+    # X position
+    axs[-2].hist(muon_batch.x.numpy(), bins = 40, alpha = .6)
+    axs[-2].set_xlabel(r"$x$ [m]")
+
+    # Y position
+    axs[-1].hist(muon_batch.y.numpy(), bins = 40, alpha = .6)
+    axs[-1].set_xlabel(r"$y$ [m]")
+
+    # Cosmetic
+    for ax in axs:
+        ax.grid("on")
+        ax.set_ylabel("Frequency [a.u]")
+    
+    plt.tight_layout()
+    
+    if savename is not None:
+        plt.savefig(savename, bbox_inches = 'tight')
 
     plt.show()
 
