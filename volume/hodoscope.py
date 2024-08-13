@@ -271,6 +271,18 @@ class Hodoscope(nn.Module):
                 ),
             )
 
+        axs[1].axhline(
+                y=panels_data[0]["z"],
+                color="red",
+                xmin=normalize(
+                    panels_data[0]["y"] - panels_data[0]["dy"] / 2, axs[1].get_xlim()[0], axs[1].get_xlim()[1]
+                ),
+                xmax=normalize(
+                    panels_data[0]["y"] + panels_data[0]["dy"] / 2, axs[1].get_xlim()[0], axs[1].get_xlim()[1]
+                ),
+                label = "Detection panel"
+            )
+
         # Plot XZ view
         xy_hod = Rectangle(
             (hod_data["x"], hod_data["y"]), hod_data["dx"], hod_data["dy"]
