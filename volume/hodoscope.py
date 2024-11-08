@@ -47,10 +47,6 @@ class Hodoscope(nn.Module):
         m2_cost: float = 1.0,
         budget: Optional[Tensor] = None,
         realistic_validation: bool = True,
-<<<<<<< HEAD
-        panel_type: str = "DetectorPanel",
-=======
->>>>>>> cb86007 (Updated for compatibility with HodoscopeDetectorPanel class)
         smooth: Union[float, Tensor] = None,
         device: torch.device = DEVICE,
     ):
@@ -58,20 +54,12 @@ class Hodoscope(nn.Module):
         self.realistic_validation, self.device = realistic_validation, device
         # self.register_buffer("m2_cost", torch.tensor(float(m2_cost), device=self.device))
         self.xy = nn.Parameter(torch.tensor(init_xyz[:2], device=self.device))
-<<<<<<< HEAD
-        self.z = nn.Parameter(torch.tensor(init_xyz[-1], device=self.device))
-=======
         self.z = nn.Parameter(torch.tensor(init_xyz[2:3], device=self.device))
->>>>>>> cb86007 (Updated for compatibility with HodoscopeDetectorPanel class)
         self.xyz_span = nn.Parameter(torch.tensor(init_xyz_span, device=self.device))
         self.xyz_gap = xyz_gap
         self.n_panels = n_panels
         self.res = res
         self.eff = eff
-<<<<<<< HEAD
-        self.panel_type = panel_type
-=======
->>>>>>> cb86007 (Updated for compatibility with HodoscopeDetectorPanel class)
         self.smooth = smooth
         self.panels = self.generate_init_panels()
         self.device = device
@@ -119,46 +107,6 @@ class Hodoscope(nn.Module):
         ]
 
     def generate_init_panels(self) -> nn.ModuleList:
-<<<<<<< HEAD
-        r"""
-        Generates `.n_panels` DetectorPanels or SigmoidDetectorPanels according to the chosen `.panel_type`.
-        Panels' xyz position and span are computed via the `get_init_panels_pos` and `get_init_panels_span` methods.
-
-        Returns:
-            DetectorPanels instances as a nn.ModuleList.
-        """
-
-        panel_cls = (
-            DetectorPanel
-            if self.panel_type == "DetectorPanel"
-            else SigmoidDetectorPanel
-        )
-        if panel_cls not in [DetectorPanel, SigmoidDetectorPanel]:
-            raise ValueError(
-                f"Detector type {self.panel_type} currently not supported."
-            )
-
-        panel_positions = self.get_init_panels_pos()
-        panel_spans = self.get_init_panels_span()
-
-        panels = []
-        for i in range(self.n_panels):
-            panel_args = {
-                "res": self.res,
-                "eff": self.eff,
-                "realistic_validation": self.realistic_validation,
-                "init_xyz": panel_positions[i],
-                "init_xy_span": panel_spans[i],
-                "device": self.device,
-            }
-            if self.panel_type == "SigmoidDetectorPanel":
-                panel_args["smooth"] = self.smooth
-
-            panels.append(panel_cls(**panel_args))
-
-        return nn.ModuleList(panels)
-
-=======
         r"""
         Generates `.n_panels` DetectorPanels or SigmoidDetectorPanels according to whether 'self.smooth' is None or not.
         Panels' xyz position and span are computed via the `get_init_panels_pos` and `get_init_panels_span` methods.
@@ -210,7 +158,6 @@ class Hodoscope(nn.Module):
             self.xy[1].clamp_(min=xyz_low[1], max=xyz_high[1])
             self.z.clamp_(min=xyz_low[2], max=xyz_high[2])
 
->>>>>>> cb86007 (Updated for compatibility with HodoscopeDetectorPanel class)
     def get_xyz_min(self) -> Tuple[float, float, float]:
         r"""
         Returns:
@@ -247,7 +194,7 @@ class Hodoscope(nn.Module):
         hod_data = {
             "x": self.xy[0].detach().numpy() - self.xyz_span[0].detach().item() / 2,
             "y": self.xy[1].detach().numpy() - self.xyz_span[1].detach().item() / 2,
-            "z": self.z.detach().numpy() - self.xyz_span[2].detach().item(),
+            "z": self.z[0].detach().numpy() - self.xyz_span[2].detach().item(),
             "dx": self.xyz_span[0].detach().item(),
             "dy": self.xyz_span[1].detach().item(),
             "dz": self.xyz_span[2].detach().item(),
