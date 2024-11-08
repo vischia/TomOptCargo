@@ -1,16 +1,19 @@
-from tomopt.volume.layer import AbsDetectorLayer
-from tomopt.volume.panel import DetectorPanel
+
 from typing import List, Union, Optional, Iterator, Tuple
 import torch
-from torch import Tensor
+from torch import Tensor, nn
 import numpy as np
-from tomopt.muon import MuonBatch
-from volume.hodoscope import Hodoscope
-from torch import nn
 
+from volume.hodoscope import Hodoscope
 
 from tomopt.core import DEVICE
+from tomopt.volume.layer import AbsDetectorLayer
+from tomopt.volume.panel import DetectorPanel
+from tomopt.muon import MuonBatch
 
+r"""
+Provides implementations of active detection layers containing hodoscope-like detectors.
+"""
 
 class HodoscopeDetectorLayer(AbsDetectorLayer):
     def __init__(
@@ -33,18 +36,20 @@ class HodoscopeDetectorLayer(AbsDetectorLayer):
         if isinstance(hodoscopes[0], Hodoscope):
             self.type_label = "hodoscope"
             self._n_costs = len(self.hodoscopes)
+        else:
+            raise TypeError("Provided hodoscopes have type {} and not Hodoscope.".format(type(hodoscopes[0])))
 
     @staticmethod
     def get_device(hodoscopes: nn.ModuleList) -> torch.device:
         r"""
-        Helper method to ensure that all panels are on the same device, and return that device.
-        If not all the panels are on the same device, then an exception will be raised.
+        Helper method to ensure that all hodoscopes are on the same device, and return that device.
+        If not all the hodoscopes are on the same device, then an exception will be raised.
 
         Arguments:
-            panels: ModuleLists of either :class:`~tomopt.volume.panel.DetectorPanel` or :class:`~tomopt.volume.heatmap.DetectorHeatMap` objects on device
+            hodoscopes: ModuleLists :class:`Hodoscope` objects on device
 
         Returns:
-            Device on which all the panels are.
+            Device on which all the hodoscopes are.
         """
 
         device = hodoscopes[0].device
@@ -97,16 +102,22 @@ class HodoscopeDetectorLayer(AbsDetectorLayer):
 
     def conform_detector(self) -> None:
         r"""
-        Loops through hodoscopes and calls their `clamp_params` method, to ensure that hodoscopes are located within the bounds of the detector layer.
+        Loops through hodoscopes and calls their `clamp_params` method, to ensure that hodoscopes are located within the bounds allocated to them within the detector layer.
+        Assuming hodoscopes are created along the x direction, the total length of the layer is split among them, to prevent any overlap in x. 
+        Hodoscopes are free to move in y and z directions within the layer. 
         It will be called via the :class:`~tomopt.optimisation.wrapper.AbsVolumeWrapper` after any update to the hodoscope layers.
         """
 
         lw = self.lw.detach().cpu().numpy()
         z = self.z.detach().cpu()[0]
-        for p in self.hodoscopes:
+        n= len(self.hodoscopes)
+        for i,p in enumerate(self.hodoscopes):
+            x_low = 0 if i==0 else i*lw[0]/n + p.xyz_span[0].detach().cpu().numpy()/2
+            x_high = lw[0]/n - p.xyz_span[0].detach().cpu().numpy()/2 if i==0 else (i+1)*lw[0]/n
             p.clamp_params(
-                xyz_low=(0, 0, z - self.size),
-                xyz_high=(lw[0], lw[1], z),
+                xyz_low= (x_low , 0, z - self.size + p.xyz_span[2]), # added thickness of hodoscope to lower z value to ensure it stays inside layer
+                xyz_high=(x_high, lw[1], z),
+
             )
 
     def get_cost(self) -> Tensor:

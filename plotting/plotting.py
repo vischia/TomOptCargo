@@ -261,7 +261,7 @@ def draw_volume_2D(
 
     axs[0].set_xlabel("x [m]")
     axs[0].set_ylabel("z [m]")
-    axs[0].set_title(" YZ view")
+    axs[0].set_title(" XZ view")
 
     # YZ view
     YZ_hods = [Rectangle((hod["y"], hod["z"]), hod["dy"], hod["dz"]) for hod in hods]
