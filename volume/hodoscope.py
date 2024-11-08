@@ -6,16 +6,15 @@ from tomopt.core import DEVICE
 import torch
 from torch import Tensor
 from torch import nn
-from tomopt.volume.panel import DetectorPanel, SigmoidDetectorPanel
 from volume.hodoscopePanel import HodoscopeDetectorPanel, HodoscopeSigmoidDetectorPanel
 
 
 class Hodoscope(nn.Module):
     r"""
-    Provides a hodoscope detection module made of multiple DetectorPanels, centered at a learnable xyz position (meters, in absolute position in the volume frame).
+    Provides a hodoscope detection module made of multiple HodoscopeDetectorPanels, centered at a learnable xyz position (meters, in absolute position in the volume frame).
     While this class can be used manually, it is designed to be used by the HodoscopeDetectorLayer class.
 
-    Instances of `DetectorPanel` or `SigmoidDetectorPanel` will be created within the hodoscope.
+    Instances of `HodoscopeDetectorPanel` or `HodoscopeSigmoidDetectorPanel` will be created within the hodoscope.
     Panels' xy initial position is the hodoscope xy position `.xy`.
     Panels' z position is initialized such that the gap between the top/bottom of the hodoscope and the first/last panel is `.xyz_gap[2]`.
     Panels' xy span is initialized such that the gap between the left/right edge of the hodoscope and the left/right edge of the panels is `.xyz_gap[0]`, `.xyz_gap[1]` along x and y respectively.
@@ -64,7 +63,7 @@ class Hodoscope(nn.Module):
         self.panels = self.generate_init_panels()
         self.device = device
 
-    def __getitem__(self, idx: int) -> DetectorPanel:
+    def __getitem__(self, idx: int) -> HodoscopeDetectorPanel:
         return self.panels[idx]
 
     def __repr__(self) -> str:
