@@ -10,6 +10,7 @@ from tomopt.volume import AbsDetectorLayer, Volume
 from tomopt.optimisation.wrapper import AbsVolumeWrapper
 from volume.hodoscopelayer import HodoscopeDetectorLayer
 
+
 class HodoscopeVolumeWrapper(AbsVolumeWrapper):
     r"""
     Volume wrapper for volumes with :class:`~volume.panel.HodoscopeDetectorPanel`-based detectors.
@@ -221,9 +222,17 @@ class HodoscopeVolumeWrapper(AbsVolumeWrapper):
         for d in all_dets:
             if isinstance(d, AbsDetectorLayer):
                 dets.append(d)
+    
         self.opts = {
-            "xy_pos_opt": kwargs["xy_pos_opt"]((h.xy for l in dets for h in l.hodoscopes)),
+            "xy_pos_opt": kwargs["xy_pos_opt"](
+                (h.xy for l in dets for h in l.hodoscopes)
+            ),
             "z_pos_opt": kwargs["z_pos_opt"]((h.z for l in dets for h in l.hodoscopes)),
+            "xyz_span_opt": kwargs["xyz_span_opt"](
+                (h.xyz_span for l in dets for h in l.hodoscopes)
+            ),
         }
         if kwargs["budget_opt"] is not None:
-            self.opts["budget_opt"] = kwargs["budget_opt"]((p for p in [self.volume.budget_weights]))
+            self.opts["budget_opt"] = kwargs["budget_opt"](
+                (p for p in [self.volume.budget_weights])
+            )

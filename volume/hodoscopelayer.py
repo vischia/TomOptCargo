@@ -16,40 +16,21 @@ Provides implementations of active detection layers containing hodoscope-like de
 """
 
 class HodoscopeDetectorLayer(AbsDetectorLayer):
-    r"""
-    A detector layer class that one or more "hodoscope" to record muon positions (hits).
-
-    Multiple detection layers can be grouped together, via their `pos` attribute (position); a string-encoded value.
-    By default, the inference methods expect detectors above the passive layer to have `pos=='above'`,
-    and those below the passive volume to have `pos=='below'`.
-    When retrieving hits from the muon batch, hits will be stacked together with other hits from the same `pos`.
-
-    The length and width (`lw`) is the spans of the layer in metres in x and y, and the layer begins at x=0, y=0.
-    z indicates the position of the top of the layer, in meters, and size is the distance from the top of the layer to the bottom.
-
-    .. important::
-        The detector panels do not scatter muons.
-
-    Arguments:
-        pos: string-encoding of the detector-layer group
-        lw: the length and width of the layer in the x and y axes in metres, starting from (x,y)=(0,0).
-        z: the z position of the top of layer in metres. The bottom of the layer will be located at z-size
-        size: the voxel size in metres. Must be such that lw is divisible by the specified size.
-        hodoscopes: The set of initialised hodoscopes to contain in the detector layer
-    """
-
-    def __init__(self, 
-                 pos:str, 
-                 *,
-                 lw:Tensor,
-                 z:float,
-                 size:float, 
-                 hodoscopes: List[Hodoscope],
+    def __init__(
+        self,
+        pos: str,
+        *,
+        lw: Tensor,
+        z: float,
+        size: float,
+        hodoscopes: List[Hodoscope],
     ):
         if isinstance(hodoscopes, list):
             hodoscopes = nn.ModuleList(hodoscopes)
 
-        super().__init__(pos=pos, lw=lw, z=z, size=size, device=self.get_device(hodoscopes))
+        super().__init__(
+            pos=pos, lw=lw, z=z, size=size, device=self.get_device(hodoscopes)
+        )
         self.hodoscopes = hodoscopes
 
         if isinstance(hodoscopes[0], Hodoscope):
@@ -75,17 +56,23 @@ class HodoscopeDetectorLayer(AbsDetectorLayer):
         if len(hodoscopes) > 1:
             for h in hodoscopes[1:]:
                 if h.device != device:
-                    raise ValueError("All hodoscopes must use the same device, but found multiple devices")
+                    raise ValueError(
+                        "All hodoscopes must use the same device, but found multiple devices"
+                    )
         return device
-    
+
     def get_panel_zorder(self) -> List[int]:
         r"""
         Returns:
             The indices of the panels in order of decreasing z-position.
         """
 
-        return list(np.argsort([p.z.detach().cpu().item() for h in self.hodoscopes for p in h.panels])[::-1])
-    
+        return list(
+            np.argsort(
+                [p.z.detach().cpu().item() for h in self.hodoscopes for p in h.panels]
+            )[::-1]
+        )
+
     def yield_zordered_panels(self) -> Iterator[Tuple[int, DetectorPanel]]:
         r"""
         Yields the index of the panel, and the panel, in order of decreasing z-position.
@@ -96,7 +83,7 @@ class HodoscopeDetectorLayer(AbsDetectorLayer):
         panels = [p for h in self.hodoscopes for p in h.panels]
 
         for i in self.get_panel_zorder():
-             yield i, panels[i]
+            yield i, panels[i]
 
     def forward(self, mu: MuonBatch) -> None:
         r"""
