@@ -7,6 +7,7 @@ import torch
 from torch import Tensor
 from torch import nn
 from tomopt.volume.panel import DetectorPanel, SigmoidDetectorPanel
+from volume.hodoscopePanel import HodoscopeDetectorPanel, HodoscopeSigmoidDetectorPanel
 
 
 class Hodoscope(nn.Module):
@@ -46,7 +47,10 @@ class Hodoscope(nn.Module):
         m2_cost: float = 1.0,
         budget: Optional[Tensor] = None,
         realistic_validation: bool = True,
+<<<<<<< HEAD
         panel_type: str = "DetectorPanel",
+=======
+>>>>>>> cb86007 (Updated for compatibility with HodoscopeDetectorPanel class)
         smooth: Union[float, Tensor] = None,
         device: torch.device = DEVICE,
     ):
@@ -54,13 +58,20 @@ class Hodoscope(nn.Module):
         self.realistic_validation, self.device = realistic_validation, device
         # self.register_buffer("m2_cost", torch.tensor(float(m2_cost), device=self.device))
         self.xy = nn.Parameter(torch.tensor(init_xyz[:2], device=self.device))
+<<<<<<< HEAD
         self.z = nn.Parameter(torch.tensor(init_xyz[-1], device=self.device))
+=======
+        self.z = nn.Parameter(torch.tensor(init_xyz[2:3], device=self.device))
+>>>>>>> cb86007 (Updated for compatibility with HodoscopeDetectorPanel class)
         self.xyz_span = nn.Parameter(torch.tensor(init_xyz_span, device=self.device))
         self.xyz_gap = xyz_gap
         self.n_panels = n_panels
         self.res = res
         self.eff = eff
+<<<<<<< HEAD
         self.panel_type = panel_type
+=======
+>>>>>>> cb86007 (Updated for compatibility with HodoscopeDetectorPanel class)
         self.smooth = smooth
         self.panels = self.generate_init_panels()
         self.device = device
@@ -108,6 +119,7 @@ class Hodoscope(nn.Module):
         ]
 
     def generate_init_panels(self) -> nn.ModuleList:
+<<<<<<< HEAD
         r"""
         Generates `.n_panels` DetectorPanels or SigmoidDetectorPanels according to the chosen `.panel_type`.
         Panels' xyz position and span are computed via the `get_init_panels_pos` and `get_init_panels_span` methods.
@@ -146,6 +158,59 @@ class Hodoscope(nn.Module):
 
         return nn.ModuleList(panels)
 
+=======
+        r"""
+        Generates `.n_panels` DetectorPanels or SigmoidDetectorPanels according to whether 'self.smooth' is None or not.
+        Panels' xyz position and span are computed via the `get_init_panels_pos` and `get_init_panels_span` methods.
+        A reference to the panels' hodoscope, and the index of each panel's order inside the hodoscope, are passed as arguments to the panels' constructors.
+
+        Returns:
+            List of DetectorPanels instances.
+        """
+
+        panel_cls = (
+            HodoscopeDetectorPanel
+            if self.smooth is None
+            else HodoscopeSigmoidDetectorPanel
+        )
+
+        panel_positions = self.get_init_panels_pos()
+        panel_spans = self.get_init_panels_span()
+
+        panels = []
+        for i in range(self.n_panels):
+            panel_args = {
+                "res": self.res,
+                "eff": self.eff,
+                "realistic_validation": self.realistic_validation,
+                "init_xyz": panel_positions[i],
+                "init_xy_span": panel_spans[i],
+                "device": self.device,
+                "hod": self,
+                "idx": i,
+            }
+            if self.smooth is not None:
+                panel_args["smooth"] = self.smooth
+
+            panels.append(panel_cls(**panel_args))
+
+        return panels
+    
+    def clamp_params(self, xyz_low: Tuple[float, float, float], xyz_high: Tuple[float, float, float]) -> None:
+        r"""
+        Ensures that the hodoscope is centred within the supplied xyz range.
+
+        Arguments:
+            xyz_low: minimum x,y,z values for the hodoscope centre in metres
+            xyz_high: maximum x,y,z values for the hodoscope centre in metres
+        """
+
+        with torch.no_grad():
+            self.xy[0].clamp_(min=xyz_low[0], max=xyz_high[0])
+            self.xy[1].clamp_(min=xyz_low[1], max=xyz_high[1])
+            self.z.clamp_(min=xyz_low[2], max=xyz_high[2])
+
+>>>>>>> cb86007 (Updated for compatibility with HodoscopeDetectorPanel class)
     def get_xyz_min(self) -> Tuple[float, float, float]:
         r"""
         Returns:

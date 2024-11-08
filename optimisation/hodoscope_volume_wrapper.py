@@ -246,12 +246,13 @@ class HodoscopeVolumeWrapper(AbsVolumeWrapper):
             # if isinstance(d, PanelDetectorLayer):
             if isinstance(d, AbsDetectorLayer):
                 dets.append(d)
+    
         self.opts = {
             "xy_pos_opt": kwargs["xy_pos_opt"](
                 (h.xy for l in dets for h in l.hodoscopes)
             ),
             "z_pos_opt": kwargs["z_pos_opt"]((h.z for l in dets for h in l.hodoscopes)),
-            "xyz_span_opt": kwargs["z_pos_opt"](
+            "xyz_span_opt": kwargs["xyz_span_opt"](
                 (h.xyz_span for l in dets for h in l.hodoscopes)
             ),
         }
