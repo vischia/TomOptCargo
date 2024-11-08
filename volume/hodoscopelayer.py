@@ -13,19 +13,21 @@ from tomopt.core import DEVICE
 
 
 class HodoscopeDetectorLayer(AbsDetectorLayer):
-
-    def __init__(self, 
-                 pos:str, 
-                 *,
-                 lw:Tensor,
-                 z:float,
-                 size:float, 
-                 hodoscopes: List[Hodoscope],
+    def __init__(
+        self,
+        pos: str,
+        *,
+        lw: Tensor,
+        z: float,
+        size: float,
+        hodoscopes: List[Hodoscope],
     ):
         if isinstance(hodoscopes, list):
             hodoscopes = nn.ModuleList(hodoscopes)
 
-        super().__init__(pos=pos, lw=lw, z=z, size=size, device=self.get_device(hodoscopes))
+        super().__init__(
+            pos=pos, lw=lw, z=z, size=size, device=self.get_device(hodoscopes)
+        )
         self.hodoscopes = hodoscopes
 
         if isinstance(hodoscopes[0], Hodoscope):
@@ -34,7 +36,6 @@ class HodoscopeDetectorLayer(AbsDetectorLayer):
 
     @staticmethod
     def get_device(hodoscopes: nn.ModuleList) -> torch.device:
-
         r"""
         Helper method to ensure that all panels are on the same device, and return that device.
         If not all the panels are on the same device, then an exception will be raised.
@@ -50,17 +51,23 @@ class HodoscopeDetectorLayer(AbsDetectorLayer):
         if len(hodoscopes) > 1:
             for h in hodoscopes[1:]:
                 if h.device != device:
-                    raise ValueError("All hodoscopes must use the same device, but found multiple devices")
+                    raise ValueError(
+                        "All hodoscopes must use the same device, but found multiple devices"
+                    )
         return device
-    
+
     def get_panel_zorder(self) -> List[int]:
         r"""
         Returns:
             The indices of the panels in order of decreasing z-position.
         """
 
-        return list(np.argsort([p.z.detach().cpu().item() for h in self.hodoscopes for p in h.panels])[::-1])
-    
+        return list(
+            np.argsort(
+                [p.z.detach().cpu().item() for h in self.hodoscopes for p in h.panels]
+            )[::-1]
+        )
+
     def yield_zordered_panels(self) -> Iterator[Tuple[int, DetectorPanel]]:
         r"""
         Yields the index of the panel, and the panel, in order of decreasing z-position.
@@ -71,7 +78,7 @@ class HodoscopeDetectorLayer(AbsDetectorLayer):
         panels = [p for h in self.hodoscopes for p in h.panels]
 
         for i in self.get_panel_zorder():
-             yield i, panels[i]
+            yield i, panels[i]
 
     def forward(self, mu: MuonBatch) -> None:
         r"""
